@@ -294,4 +294,6 @@ function put!{T}(link::ML.Link, expr::MExpr{T})
   for x in expr.args put!(link, x) end
 end
 
+include("display.jl")
+
 end
