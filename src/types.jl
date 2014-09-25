@@ -29,7 +29,10 @@ const aliases =
    :-   => :Subtract,
    :%   => :Mod,
    :log => :Log,
-   :exp => :Exp]
+   :exp => :Exp,
+   :sin => :Sin,
+   :cos => :Cos,
+   :tan => :Tan]
 
 from_mma(x) = x
 const symbols = [:True => true, :False => false, :Null => nothing]
