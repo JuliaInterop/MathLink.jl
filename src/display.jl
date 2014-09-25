@@ -1,4 +1,7 @@
-Base.writemime(io::IO, ::MIME"text/html", p::MExpr{:Graphics}) =
+import Base: writemime
+
+writemime(io::IO, ::MIME"text/html", p::MExpr{:Graphics}) =
   print(io, ExportString(p, "SVG"))
 
-# Base.writemime(io::IO, ::MIME"image/png", p::MExpr{:Graphics3D})
+writemime(io::IO, ::MIME"image/png", p::MExpr{:Graphics3D}) =
+  print(io, @math ExportString($p, "PNG"))
