@@ -1,3 +1,5 @@
+__precompile__()
+
 module MathLink
 
 # TODO:
@@ -99,7 +101,10 @@ function math_path()
   "math"
 end
 
-const link = ML.Open(math_path())
+function __init__()
+  global const link = ML.Open(math_path())
+end
+
 meval(expr) = meval(expr, Any)
 meval(expr, T) = meval(link, expr, T)
 
