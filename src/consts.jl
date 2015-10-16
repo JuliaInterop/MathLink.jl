@@ -41,8 +41,8 @@ module TK
 
   const FUNC    = 'F'   # /* 70 Ox46 01000110 */ # /* non-leaf node */
 
-  const ERROR   = char(0)   # /* bad token */
-  const ERR     = char(0)   # /* bad token */
+  const ERROR   = Char(0)   # /* bad token */
+  const ERR     = Char(0)   # /* bad token */
 
   const STR     = '"'         # /* 34 0x22 00100010 */
   const SYM     = '\043'      # /* 35 0x23 # 00100011 */ # /* octal here as hash requires a trigraph */

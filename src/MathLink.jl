@@ -122,7 +122,7 @@ function handle_packets(link::ML.Link, T)
   while packet != :ReturnPacket
     if packet == :start
     elseif packet == :TextPacket
-      print(get!(link, String))
+      print(get!(link, UTF8String))
     elseif packet == :MessagePacket
       ML.NewPacket(link)
       warn(get!(link).args[1])
@@ -147,12 +147,12 @@ end
 for (T, f) in [(Int64,   :GetInteger64)
                (Int32,   :GetInteger32)
                (Float64, :GetReal64)
-               (String,  :GetString)
+               (UTF8String,  :GetString)
                (Symbol,  :GetSymbol)]
   @eval get!(link::ML.Link, ::Type{$T}) = (ML.$f)(link)
 end
 
-get!(link::ML.Link, ::Type{BigInt}) = BigInt(get!(link, String))
+get!(link::ML.Link, ::Type{BigInt}) = parse(BigInt, get!(link, UTF8String))
 
 get!(link::ML.Link, T) = convert(T, from_mma(get!(link)))
 
@@ -161,14 +161,14 @@ function get!(link::ML.Link)
 
   if t == ML.TK.INT
     i = get!(link, BigInt)
-    typemin(Int) <= i <= typemax(Int) ? int(i) : i
+    typemin(Int) <= i <= typemax(Int) ? Int(i) : i
 
   elseif t == ML.TK.FUNC
     f, nargs = ML.GetFunction(link)
-    MExpr{f}({get!(link) for i=1:nargs})
+    MExpr{f}([get!(link) for i=1:nargs])
 
   elseif t == ML.TK.STR
-    get!(link, String)
+    get!(link, UTF8String)
   elseif t == ML.TK.REAL
     get!(link, Float64)
   elseif t == ML.TK.SYM
@@ -178,7 +178,7 @@ function get!(link::ML.Link)
     error("Link has suffered error $(ML.Error(link)): $(ML.ErrorMessage(link))")
 
   else
-    error("Unsupported data type $t ($(int(t)))")
+    error("Unsupported data type $t ($(Int(t)))")
   end
 end
 
@@ -189,7 +189,7 @@ put!(link::ML.Link, head::Symbol, nargs::Integer) = ML.PutFunction(link, string(
 for (T, f) in [(Int64,   :PutInteger64)
                (Int32,   :PutInteger32)
                (Float64, :PutReal64)
-               (String,  :PutString)
+               (AbstractString,  :PutString)
                (Symbol,  :PutSymbol)]
   @eval put!(link::ML.Link, x::$T) = (ML.$f)(link, x)
 end

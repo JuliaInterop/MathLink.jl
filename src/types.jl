@@ -22,23 +22,23 @@ show(io::IO, r::MExpr{:Rule}) =
 # Conversion
 
 const aliases =
-  [:*   => :Times,
-   :/   => :Divide,
-   :^   => :Power,
-   :+   => :Plus,
-   :-   => :Subtract,
-   :%   => :Mod,
-   :log => :Log,
-   :exp => :Exp,
-   :sin => :Sin,
-   :cos => :Cos,
-   :tan => :Tan]
+  Dict(:*   => :Times,
+       :/   => :Divide,
+       :^   => :Power,
+       :+   => :Plus,
+       :-   => :Subtract,
+       :%   => :Mod,
+       :log => :Log,
+       :exp => :Exp,
+       :sin => :Sin,
+       :cos => :Cos,
+       :tan => :Tan)
 
 from_mma(x) = x
-const symbols = [:True => true, :False => false, :Null => nothing]
+const symbols = Dict(:True => true, :False => false, :Null => nothing)
 from_mma(s::Symbol) = haskey(symbols, s) ? symbols[s] : s
 
-to_mma{T<:Union(Int64,Int32,Float64,Float32,Symbol,String)}(x::T) = x
+to_mma{T<:Union{Int64,Int32,Float64,Float32,Symbol,AbstractString}}(x::T) = x
 
 function to_mma(x::Expr)
   if x.head == :call

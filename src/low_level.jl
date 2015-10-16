@@ -17,7 +17,7 @@ macro mlib(); mlib; end
 
 function Open(path = "math")
   # MLInitialize
-  mlenv = ccall((:MLInitialize, @mlib), Env, (Cstr,), 0)
+  mlenv = ccall((:MLInitialize, @mlib), Env, (Cstr,), C_NULL)
   mlenv == C_NULL && error("Could not MLInitialize")
 
   # MLOpenString
@@ -50,13 +50,13 @@ mlerror(link, name) = error("MathLink Error $(Error(link)) in $name: " * ErrorMe
 
 # Put fns
 
-PutFunction(link::Link, name::String, nargs::Int) =
+PutFunction(link::Link, name::AbstractString, nargs::Int) =
   ccall((:MLPutFunction, @mlib), Cint, (Link, Cstr, Cint),
     link, name, nargs) != 0 || mlerror(link, "MLPutFunction")
 
 for (f, Tj, Tc) in [(:PutInteger64, Int64, Int64)
                     (:PutInteger32, Int32, Int32)
-                    (:PutString, String, Cstr)
+                    (:PutString, AbstractString, Cstr)
                     (:PutSymbol, Symbol, Cstr)
                     (:PutReal32, Float32, Float32)
                     (:PutReal64, Float64, Float64)]
@@ -69,7 +69,7 @@ end
 # Get fns
 
 GetType(link::Link) =
-  ccall((:MLGetType, @mlib), Cint, (Link,), link) |> char
+  ccall((:MLGetType, @mlib), Cint, (Link,), link) |> Char
 
 for (f, T) in [(:GetInteger64, Int64)
                (:GetInteger32, Int32)
