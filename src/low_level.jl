@@ -15,7 +15,7 @@ typealias Link Ptr{Void}
 verout = open("/tmp/checkversion.m","w")
 write(verout,"Print[\$VersionNumber]")
 close(verout)
-version=float(chomp(readall((`math -script /tmp/checkversion.m`)))
+version=float(chomp(readall((`math -script /tmp/checkversion.m`))))
 
 mlib = "ml64i3"
 mlib = @osx ? "/Applications/Mathematica.app/Contents/Frameworks/mathlink.framework/mathlink" : mlib
