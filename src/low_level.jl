@@ -12,9 +12,16 @@ include("consts.jl")
 typealias Env Ptr{Void}
 typealias Link Ptr{Void}
 
+<<<<<<< HEAD
 if isdir("/usr/local/Wolfram/Mathematica")
   version=readdir("/usr/local/Wolfram/Mathematica")[1]
 end
+=======
+verout = open("/tmp/checkversion.m","w")
+write(verout,"Print[\$VersionNumber]")
+close(verout)
+version=float(chomp(readall((`math -script /tmp/checkversion.m`))))
+>>>>>>> eb91781d70ac075f07e24d4d2af11962fbd144a4
 
 mlib = "ml64i3"
 mlib = @osx ? "/Applications/Mathematica.app/Contents/Frameworks/mathlink.framework/mathlink" : mlib
