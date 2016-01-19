@@ -12,7 +12,13 @@ include("consts.jl")
 typealias Env Ptr{Void}
 typealias Link Ptr{Void}
 
-mlib = @osx ? "/Applications/Mathematica.app/Contents/Frameworks/mathlink.framework/mathlink" : "ml64i3"
+if isdir("/usr/local/Wolfram/Mathematica")
+  version=maximum(float(readdir("/usr/local/Wolfram/Mathematica")))
+end
+
+mlib = "ml64i3"
+mlib = @osx ? "/Applications/Mathematica.app/Contents/Frameworks/mathlink.framework/mathlink" : mlib
+mlib = @unix ? (version>10 ? string("/usr/local/Wolfram/Mathematica/",version,"/SystemFiles/Links/MathLink/DeveloperKit/Linux-x86-64/CompilerAdditions/libML64i4") : mlib) : mlib 
 macro mlib(); mlib; end
 
 function Open(path = "math")
