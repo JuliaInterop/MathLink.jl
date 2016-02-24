@@ -12,25 +12,73 @@ include("consts.jl")
 typealias Env Ptr{Void}
 typealias Link Ptr{Void}
 
-if isdir("/usr/local/Wolfram/Mathematica")
-  version=maximum(float(readdir("/usr/local/Wolfram/Mathematica")))
+
+function find_lib_ker()    
+    @osx_only begin
+        # TODO: query OS X metadata for non-default installations
+        # https://github.com/JuliaLang/julia/issues/8733#issuecomment-167981954
+        mpath = "/Applications/Mathematica.app"        
+        if isdir(mpath)
+            lib = joinpath(mpath,"Contents/Frameworks/mathlink.framework/mathlink")
+            ker = joinpath(mpath,"Contents/MacOS/MathKernel")
+            return lib, ker
+        end        
+    end
+
+    @linux_only begin
+        archdir = Sys.ARCH == :arm ?    "Linux-ARM" :
+                  Sys.ARCH == :x86_64 ? "Linux-x86-64" :
+                                        "Linux"
+
+        # alternatively, "math" or "wolfram" is often in PATH, so could use
+        # echo \$InstallationDirectory | math | sed -n -e 's/Out\[1\]= //p'
+        
+        for mpath in ["/usr/local/Wolfram/Mathematica","/opt/Wolfram/WolframEngine"]
+            if isdir(mpath)
+                vers = readdir(mpath)
+                ver = vers[indmax(map(VersionNumber,vers))]
+
+                lib = Libdl.find_library(
+                          ["libML$(Sys.WORD_SIZE)i4","libML$(Sys.WORD_SIZE)i3"],
+                          [joinpath(mpath,ver,"SystemFiles/Links/MathLink/DeveloperKit",archdir,"CompilerAdditions")])
+                ker = joinpath(mpath,ver,"Executables/MathKernel")
+                return lib, ker
+            end
+        end
+    end
+
+    @windows_only begin
+        archdir = Sys.ARCH == :x86_64 ? "Windows-x86-64" :
+                                        "Windows"
+
+        #TODO: query Windows Registry, see RCall.jl
+        mpath = "C:\\Program Files\\Wolfram Research\\Mathematica"
+        if isdir(mpath)
+            vers = readdir(mpath)
+            ver = vers[indmax(map(VersionNumber,vers))]
+            lib = Libdl.find_library(
+                          ["libML$(Sys.WORD_SIZE)i4","libML$(Sys.WORD_SIZE)i3"],
+                          [joinpath(mpath,ver,"SystemFiles\\Links\\MathLink\\DeveloperKit",archdir,"SystemAdditions")])
+            ker = joinpath(mpath,ver,"math.exe")
+            return lib, ker
+        end
+    end
+
+    error("Could not find Mathematica installation")        
 end
 
-mlib = "ml64i3"
-mlib = @osx ? "/Applications/Mathematica.app/Contents/Frameworks/mathlink.framework/mathlink" : mlib
-mlib = @linux ? (version>10 ? string("/usr/local/Wolfram/Mathematica/",version,"/SystemFiles/Links/MathLink/DeveloperKit/Linux-x86-64/CompilerAdditions/libML64i4") : mlib) : mlib 
-macro mlib(); mlib; end
+const mlib,mker = find_lib_ker()
 
-function Open(path = "math")
+function Open(path = mker)
   # MLInitialize
-  mlenv = ccall((:MLInitialize, @mlib), Env, (Cstr,), C_NULL)
+  mlenv = ccall((:MLInitialize, mlib), Env, (Cstr,), C_NULL)
   mlenv == C_NULL && error("Could not MLInitialize")
 
   # MLOpenString
   # local link
   err = ptr(Cint)
   args = "-linkname '\"$path\" -mathlink' -linkmode launch"
-  link = ccall((:MLOpenString, @mlib), Link,
+  link = ccall((:MLOpenString, mlib), Link,
                 (Env, Cstr, Ptr{Cint}),
                 mlenv, args, err)
   err[1]==0 || mlerror(link, "MLOpenString")
@@ -42,14 +90,14 @@ function Open(path = "math")
   return link
 end
 
-Close(link::Link) = ccall((:MLClose, @mlib), Void, (Link,), link)
+Close(link::Link) = ccall((:MLClose, mlib), Void, (Link,), link)
 
 ErrorMessage(link::Link) =
-  ccall((:MLErrorMessage, @mlib), Cstr, (Link,), link) |> bytestring
+  ccall((:MLErrorMessage, mlib), Cstr, (Link,), link) |> bytestring
 
 for f in [:Error :ClearError :EndPacket :NextPacket :NewPacket]
   fstr = string("ML", f)
-  @eval $f(link::Link) = ccall(($fstr, @mlib), Cint, (Link,), link)
+  @eval $f(link::Link) = ccall(($fstr, mlib), Cint, (Link,), link)
 end
 
 mlerror(link, name) = error("MathLink Error $(Error(link)) in $name: " * ErrorMessage(link))
@@ -57,7 +105,7 @@ mlerror(link, name) = error("MathLink Error $(Error(link)) in $name: " * ErrorMe
 # Put fns
 
 PutFunction(link::Link, name::AbstractString, nargs::Int) =
-  ccall((:MLPutFunction, @mlib), Cint, (Link, Cstr, Cint),
+  ccall((:MLPutFunction, mlib), Cint, (Link, Cstr, Cint),
     link, name, nargs) != 0 || mlerror(link, "MLPutFunction")
 
 for (f, Tj, Tc) in [(:PutInteger64, Int64, Int64)
@@ -68,14 +116,14 @@ for (f, Tj, Tc) in [(:PutInteger64, Int64, Int64)
                     (:PutReal64, Float64, Float64)]
   fstr = string("ML", f)
   @eval $f(link::Link, x::$Tj) =
-          ccall(($fstr, @mlib), Cint, (Link, $Tc), link, x) != 0 ||
+          ccall(($fstr, mlib), Cint, (Link, $Tc), link, x) != 0 ||
             mlerror(link, $fstr)
 end
 
 # Get fns
 
 GetType(link::Link) =
-  ccall((:MLGetType, @mlib), Cint, (Link,), link) |> Char
+  ccall((:MLGetType, mlib), Cint, (Link,), link) |> Char
 
 for (f, T) in [(:GetInteger64, Int64)
                (:GetInteger32, Int32)
@@ -84,7 +132,7 @@ for (f, T) in [(:GetInteger64, Int64)
   fstr = string("ML", f)
   @eval function $f(link::Link)
     i = ptr($T)
-    ccall(($fstr, @mlib), Cint, (Link, Ptr{$T}), link, i) != 0 ||
+    ccall(($fstr, mlib), Cint, (Link, Ptr{$T}), link, i) != 0 ||
       mlerror(link, $fstr)
     i[1]
   end
@@ -92,7 +140,7 @@ end
 
 function GetString(link::Link)
   s = ptr(Cstr)
-  ccall((:MLGetString, @mlib), Cint, (Link, Ptr{Cstr}), link, s) != 0 ||
+  ccall((:MLGetString, mlib), Cint, (Link, Ptr{Cstr}), link, s) != 0 ||
     mlerror(link, "GetString")
   r = s[1] |> bytestring |> unescape_string
   ReleaseString(link, s)
@@ -101,7 +149,7 @@ end
 
 function GetSymbol(link::Link)
   s = ptr(Cstr)
-  ccall((:MLGetSymbol, @mlib), Cint, (Link, Ptr{Cstr}), link, s) != 0 ||
+  ccall((:MLGetSymbol, mlib), Cint, (Link, Ptr{Cstr}), link, s) != 0 ||
     mlerror(link, "GetSymbol")
   r = s[1] |> bytestring |> unescape_string |> symbol
   ReleaseSymbol(link, s)
@@ -111,14 +159,14 @@ end
 function GetFunction(link::Link)
   name = ptr(Cstr)
   nargs = ptr(Cint)
-  ccall((:MLGetFunction, @mlib), Cint, (Link, Ptr{Cstr}, Ptr{Cint}),
+  ccall((:MLGetFunction, mlib), Cint, (Link, Ptr{Cstr}, Ptr{Cint}),
     link, name, nargs) != 0 || mlerror(link, "MLGetFunction")
   r = name[1] |> bytestring |> symbol, nargs[1]
   ReleaseString(link, name)
   return r
 end
 
-ReleaseString(link::Link, s) = ccall((:MLReleaseString, @mlib), Void, (Link, Cstr), link, s[1])
-ReleaseSymbol(link::Link, s) = ccall((:MLReleaseSymbol, @mlib), Void, (Link, Cstr), link, s[1])
+ReleaseString(link::Link, s) = ccall((:MLReleaseString, mlib), Void, (Link, Cstr), link, s[1])
+ReleaseSymbol(link::Link, s) = ccall((:MLReleaseSymbol, mlib), Void, (Link, Cstr), link, s[1])
 
 end
