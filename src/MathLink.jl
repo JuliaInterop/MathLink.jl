@@ -84,25 +84,8 @@ end
 # Permalink and eval
 # ------------------
 
-@windows_only const wintestpaths =
-  ["C:\\Program Files\\Wolfram Research\\Mathematica\\9.0\\math.exe"
-   "C:\\Program Files\\Wolfram Research\\Mathematica\\8.0\\math.exe"]
-
-@osx_only const osxtestpaths =
- ["/Applications/Mathematica.app/Contents/MacOS/MathKernel"]
-
-function math_path()
-  @windows_only for path in wintestpaths
-    isfile(path) && return path
-  end
-  @osx_only for path in osxtestpaths
-    isfile(path) && return path
-  end
-  "math"
-end
-
 function __init__()
-  global const link = ML.Open(math_path())
+  global const link = ML.Open()
 end
 
 meval(expr) = meval(expr, Any)
