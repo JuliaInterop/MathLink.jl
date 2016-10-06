@@ -14,7 +14,7 @@ typealias Link Ptr{Void}
 
 
 function find_lib_ker()    
-    @osx_only begin
+    @static if is_apple()
         # TODO: query OS X metadata for non-default installations
         # https://github.com/JuliaLang/julia/issues/8733#issuecomment-167981954
         mpath = "/Applications/Mathematica.app"        
@@ -25,7 +25,7 @@ function find_lib_ker()
         end        
     end
 
-    @linux_only begin
+    @static if is_linux()
         archdir = Sys.ARCH == :arm ?    "Linux-ARM" :
                   Sys.ARCH == :x86_64 ? "Linux-x86-64" :
                                         "Linux"
@@ -47,7 +47,7 @@ function find_lib_ker()
         end
     end
 
-    @windows_only begin
+    @static if is_windows()
         archdir = Sys.ARCH == :x86_64 ? "Windows-x86-64" :
                                         "Windows"
 
