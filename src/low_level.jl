@@ -93,7 +93,7 @@ end
 Close(link::Link) = ccall((:MLClose, mlib), Void, (Link,), link)
 
 ErrorMessage(link::Link) =
-  ccall((:MLErrorMessage, mlib), Cstr, (Link,), link) |> bytestring
+  ccall((:MLErrorMessage, mlib), Cstr, (Link,), link) |> unsafe_string
 
 for f in [:Error :ClearError :EndPacket :NextPacket :NewPacket]
   fstr = string("ML", f)
@@ -142,7 +142,7 @@ function GetString(link::Link)
   s = ptr(Cstr)
   ccall((:MLGetString, mlib), Cint, (Link, Ptr{Cstr}), link, s) != 0 ||
     mlerror(link, "GetString")
-  r = s[1] |> bytestring |> unescape_string
+  r = s[1] |> unsafe_string |> unescape_string
   ReleaseString(link, s)
   return r
 end
@@ -151,7 +151,7 @@ function GetSymbol(link::Link)
   s = ptr(Cstr)
   ccall((:MLGetSymbol, mlib), Cint, (Link, Ptr{Cstr}), link, s) != 0 ||
     mlerror(link, "GetSymbol")
-  r = s[1] |> bytestring |> unescape_string |> symbol
+  r = s[1] |> unsafe_string |> unescape_string |> Symbol
   ReleaseSymbol(link, s)
   return r
 end
@@ -161,7 +161,7 @@ function GetFunction(link::Link)
   nargs = ptr(Cint)
   ccall((:MLGetFunction, mlib), Cint, (Link, Ptr{Cstr}, Ptr{Cint}),
     link, name, nargs) != 0 || mlerror(link, "MLGetFunction")
-  r = name[1] |> bytestring |> symbol, nargs[1]
+  r = name[1] |> unsafe_string |> Symbol, nargs[1]
   ReleaseString(link, name)
   return r
 end
