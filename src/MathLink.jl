@@ -19,9 +19,9 @@ include("types.jl")
 # -------------------
 
 function proc_argtypes(types)
-  args = map(x->gensym(), types)
-  typed_args = map((a, t) -> :($a::$(esc(t))), args, types)
-  args, typed_args
+    args = map(x->gensym(), types)
+    typed_args = map((a, t) -> :($a::$(esc(t))), args, types)
+    args, typed_args
 end
 
 macro mmimport(expr)
@@ -92,37 +92,46 @@ meval(expr) = meval(expr, Any)
 meval(expr, T) = meval(link, expr, T)
 
 function meval(link::ML.Link, expr, T)
-  try
-    put!(link, MExpr(:EvaluatePacket, to_mma(expr)))
-    ML.EndPacket(link)
-    T == Expr ?
-      handle_packets(link, Any) |> from_mma |> to_expr :
-      handle_packets(link, T)
-  catch
-    warn("Error occured in meval: you may need to restart Julia/MathLink")
-    rethrow()
-  end
+    try
+        put!(link, MExpr(:EvaluatePacket, to_mma(expr)))
+        ML.EndPacket(link)
+        if T == Expr
+            handle_packets(link, Any) |> from_mma |> to_expr
+        else
+            handle_packets(link, T)
+        end
+    catch
+        warn("Error occured in meval: you may need to restart Julia/MathLink")
+        rethrow()
+    end
 end
 
+"""
+    handle_packets(link, T)
+
+Handle the return packets from link 
+"""
 function handle_packets(link::ML.Link, T)
-  packet = :start
-  msg = false
-  while packet != :ReturnPacket
-    if packet == :start
-    elseif packet == :TextPacket
-      print(get!(link, String))
-    elseif packet == :MessagePacket
-      ML.NewPacket(link)
-      warn(get!(link).args[1])
-      msg = true
-    else
-      error("Unsupported packet type $packet")
+    packet = :start
+    msg = false
+    # consume non-ReturnPackets on link
+    while packet != :ReturnPacket
+        if packet == :start
+        elseif packet == :TextPacket
+            print(get!(link, String))
+        elseif packet == :MessagePacket
+            ML.NewPacket(link)
+            warn(get!(link).args[1])
+            msg = true
+        else
+            error("Unsupported packet type $packet")
+        end
+        packet, n = ML.GetFunction(link)
     end
-    packet, n = ML.GetFunction(link)
-  end
-  msg && T != Any &&
-    error("Output suppressed due to warning: " * string(get!(link)))
-  return get!(link, T)
+    if msg && T != Any
+        error("Output suppressed due to warning: $(get!(link))")
+    end
+    return get!(link, T)
 end
 
 # --------------
@@ -144,6 +153,12 @@ get!(link::ML.Link, ::Type{BigInt}) = parse(BigInt, get!(link, String))
 
 get!(link::ML.Link, T) = convert(T, from_mma(get!(link)))
 
+
+"""
+    get!(link)
+
+Gets the next object on the link.
+"""
 function get!(link::ML.Link)
   t = ML.GetType(link)
 

@@ -37,7 +37,7 @@ function find_lib_ker()
                 ver = vers[indmax(map(VersionNumber,vers))]
 
                 lib = Libdl.find_library(
-                          ["libML$(Sys.WORD_SIZE)i4","libML$(Sys.WORD_SIZE)i3"],
+                          ["libML$(Sys.WORD_SIZE)i4"],
                           [joinpath(mpath,ver,"SystemFiles/Links/MathLink/DeveloperKit",archdir,"CompilerAdditions")])
                 ker = joinpath(mpath,ver,"Executables/MathKernel")
                 return lib, ker
@@ -55,7 +55,7 @@ function find_lib_ker()
             vers = readdir(mpath)
             ver = vers[indmax(map(VersionNumber,vers))]
             lib = Libdl.find_library(
-                          ["libML$(Sys.WORD_SIZE)i4","libML$(Sys.WORD_SIZE)i3"],
+                          ["libML$(Sys.WORD_SIZE)i4"],
                           [joinpath(mpath,ver,"SystemFiles\\Links\\MathLink\\DeveloperKit",archdir,"SystemAdditions")])
             ker = joinpath(mpath,ver,"math.exe")
             return lib, ker
@@ -70,29 +70,29 @@ const mlib,mker = find_lib_ker()
 """
     link = Open([path])
 
-Opens the connection to the library, using kernel at `path`.
+Initializes and Opens the connection to the library, using kernel at `path`.
 
-See [`MLOpenString`](https://reference.wolfram.com/language/ref/c/MLOpenString.html).
+See [`MLInitialize`](https://reference.wolfram.com/language/ref/c/MLInitialize.html) and [`MLOpenString`](https://reference.wolfram.com/language/ref/c/MLOpenString.html).
 """
 function Open(path = mker)
-  # MLInitialize
-  mlenv = ccall((:MLInitialize, mlib), Env, (Cstr,), C_NULL)
-  mlenv == C_NULL && error("Could not MLInitialize")
+    # MLInitialize
+    mlenv = ccall((:MLInitialize, mlib), Env, (Cstring,), C_NULL)
+    mlenv == C_NULL && error("Could not MLInitialize")
 
-  # MLOpenString
-  # local link
-  err = Ref{Cint}()
-  args = "-linkname '\"$path\" -mathlink' -linkmode launch"
-  link = ccall((:MLOpenString, mlib), Link,
-                (Env, Cstr, Ref{Cint}),
-                mlenv, args, err)
-  err[]==0 || mlerror(link, "MLOpenString")
+    # MLOpenString
+    # local link
+    err = Ref{Cint}()
+    args = "-linkname '\"$path\" -mathlink' -linkmode launch"
+    link = ccall((:MLOpenString, mlib), Link,
+                 (Env, Cstring, Ref{Cint}),
+                 mlenv, args, err)
+    err[]==0 || mlerror(link, "MLOpenString")
 
-  # Ignore first input packet
-  @assert NextPacket(link) == Pkt.INPUTNAME
-  NewPacket(link)
+    # Ignore first input packet
+    @assert NextPacket(link) == PKT_INPUTNAME
+    NewPacket(link)
 
-  return link
+    return link
 end
 
 """
@@ -104,13 +104,92 @@ See [`MLClose`](https://reference.wolfram.com/language/ref/c/MLClose.html)
 """
 Close(link::Link) = ccall((:MLClose, mlib), Void, (Link,), link)
 
-ErrorMessage(link::Link) =
-    ccall((:MLErrorMessage, mlib), Cstr, (Link,), link) |> unsafe_string
+"""
+    ErrorMessage(link)
 
-for f in [:Error :ClearError :EndPacket :NextPacket :NewPacket]
-    fstr = string("ML", f)
-    @eval $f(link::Link) = ccall(($fstr, mlib), Cint, (Link,), link)
+Returns a string describing the last error to occur on `link`.
+
+See [`MLUTF8ErrorMessage`](https://reference.wolfram.com/language/ref/c/MLUTF8ErrorMessage.html)
+"""
+function ErrorMessage(link::Link)
+    b = Ref{Cint}()
+    p = ccall((:MLUTF8ErrorMessage, mlib), Cstring, (Link,Ref{Cint}), link, b)
+    if p != C_NULL
+        r = unsafe_string(p, b[])
+        ccall((:MLReleaseUTF8ErrorMessage, mlib), Void, (CString, Cint), p, b[])
+        return r
+    else
+        return nothing
+    end
 end
+    
+"""
+    Error(link)
+
+Returns an `Err` value indicating the last error to occur on `link` since `ClearError` was last called.
+
+See [`MLError`](https://reference.wolfram.com/language/ref/c/MLError.html)
+"""
+Error(link::Link) =
+    ccall((:MLError, mlib), Err, (Link,), link)
+
+"""
+    ClearError(link)
+
+Attempts to clear the error off `link`. Returns nonzero value if successful.
+
+See [`MLClearError`](https://reference.wolfram.com/language/ref/c/MLClearError.html)
+"""
+function ClearError(link::Link)
+    ccall((:MLClearError, mlib), Cint, (Link,), link)
+end
+
+"""
+    EndPacket(link)
+
+Inserts an indicator in the expression stream that says the current expression is complete and is ready to be sent. Returns nonzero value if successful.
+
+See [`MLEndPacket`](https://reference.wolfram.com/language/ref/c/MLEndPacket.html)
+"""
+function EndPacket(link::Link)
+    ccall((:MLEndPacket, mlib), Cint, (Link,), link)
+end
+
+"""
+    NextPacket(link)
+
+Goes to the next packet on link. Returns a `Pkt` value to indicate its head.
+
+See [`MLNextPacket`](https://reference.wolfram.com/language/ref/c/MLNextPacket.html)
+"""
+function NextPacket(link::Link)
+    ccall((:MLNextPacket, mlib), Pkt, (Link,), link)
+end
+
+
+"""
+    NewPacket(link)
+
+Skips to the end of the current packet on `link`. Returns a nonzero value if successful.
+
+See [`MLNewPacket`](https://reference.wolfram.com/language/ref/c/MLNewPacket.html)
+"""
+function NewPacket(link::Link)
+    ccall((:MLNewPacket, mlib), Cint, (Link,), link)
+end
+
+
+"""
+    GetNext(link)
+
+Goes to the next object on `link`. Returns a `Tkn` value indicating the objects type.
+
+See [`MLGetNext`](https://reference.wolfram.com/language/ref/c/MLGetNext.html)
+"""
+function GetNext(link::Link)
+    ccall((:MLGetNext, mlib), Tkn, (Link,), link)
+end
+
 
 mlerror(link, name) = error("MathLink Error $(Error(link)) in $name: $(ErrorMessage(link))")
 
@@ -147,12 +226,12 @@ end
 """
     GetType(link)
 
-Gets the type of the current object on `link`.
+Gets the type of the current object on `link` as a `Tkn` value.
 
 See [MLGetType](http://reference.wolfram.com/language/ref/c/MLGetType.html)
 """
 GetType(link::Link) =
-    ccall((:MLGetType, mlib), Cint, (Link,), link) |> Char
+    ccall((:MLGetType, mlib), Tkn, (Link,), link) |> Char
 
 for (f, T) in [(:GetInteger64, Int64)
                (:GetInteger32, Int32)

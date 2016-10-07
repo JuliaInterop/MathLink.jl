@@ -34,9 +34,14 @@ const aliases =
        :cos => :Cos,
        :tan => :Tan)
 
+"""
+    from_mma(x)
+
+Converts Mathematica objects and expressions to their canonical Julia form.
+"""
 from_mma(x) = x
 const symbols = Dict(:True => true, :False => false, :Null => nothing)
-from_mma(s::Symbol) = haskey(symbols, s) ? symbols[s] : s
+from_mma(s::Symbol) = get(symbols, s, s)
 
 to_mma{T<:Union{Int64,Int32,Float64,Float32,Symbol,AbstractString}}(x::T) = x
 
