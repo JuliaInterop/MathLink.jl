@@ -274,7 +274,9 @@ function GetFunction(link::Link)
     s = Ref{Ptr{Cuchar}}()
     b = Ref{Cint}()
     n = Ref{Cint}()
-    ccall((:MLGetUTF8Function, mlib), Cint, Cint, (Link, Ref{Ptr{Cuchar}}, Ref{Cint}, Ref{Cint}), link, s, b, c) != 0 ||
+    ccall((:MLGetUTF8Function, mlib), Cint,
+          (Link, Ref{Ptr{Cuchar}}, Ref{Cint}, Ref{Cint}),
+          link, s, b, c) != 0 ||
         mlerror(link, "MLGetUTF8Function")
     r = unsafe_string(s[], b[]) |> unescape_string |> Symbol, n[]
     ccall((:MLReleaseUTF8Symbol, mlib), Void, (Link, Ptr{Cuchar}, Cint), link, s[], b[])
