@@ -200,7 +200,7 @@ for (f, T) in [(:PutInteger64, Int64)
                (:PutReal64, Float64)]
     fstr = string("ML", f)
     @eval $f(link::Link, x::$T) =
-        ccall(($fstr, mlib), Cint, (Link, $Tc), link, x) != 0 ||
+        ccall(($fstr, mlib), Cint, (Link, $T), link, x) != 0 ||
             mlerror(link, $fstr)
 end
 
