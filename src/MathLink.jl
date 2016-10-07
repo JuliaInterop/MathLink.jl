@@ -110,7 +110,7 @@ function handle_packets(link::ML.Link, T)
   while packet != :ReturnPacket
     if packet == :start
     elseif packet == :TextPacket
-      print(get!(link, UTF8String))
+      print(get!(link, String))
     elseif packet == :MessagePacket
       ML.NewPacket(link)
       warn(get!(link).args[1])
@@ -135,12 +135,12 @@ end
 for (T, f) in [(Int64,   :GetInteger64)
                (Int32,   :GetInteger32)
                (Float64, :GetReal64)
-               (UTF8String,  :GetString)
+               (String,  :GetString)
                (Symbol,  :GetSymbol)]
   @eval get!(link::ML.Link, ::Type{$T}) = (ML.$f)(link)
 end
 
-get!(link::ML.Link, ::Type{BigInt}) = parse(BigInt, get!(link, UTF8String))
+get!(link::ML.Link, ::Type{BigInt}) = parse(BigInt, get!(link, String))
 
 get!(link::ML.Link, T) = convert(T, from_mma(get!(link)))
 
@@ -156,7 +156,7 @@ function get!(link::ML.Link)
     MExpr{f}([get!(link) for i=1:nargs])
 
   elseif t == ML.TK.STR
-    get!(link, UTF8String)
+    get!(link, String)
   elseif t == ML.TK.REAL
     get!(link, Float64)
   elseif t == ML.TK.SYM
