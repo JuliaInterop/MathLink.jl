@@ -6,66 +6,6 @@ typealias Env Ptr{Void}
 typealias Link Ptr{Void}
 
 
-"""
-    lib,ker = find_lib_ker()
-
-Finds the MathLink library (`lib`) and kernel executable (`ker`).
-"""
-function find_lib_ker()
-    @static if is_apple()
-        # TODO: query OS X metadata for non-default installations
-        # https://github.com/JuliaLang/julia/issues/8733#issuecomment-167981954
-        mpath = "/Applications/Mathematica.app"
-        if isdir(mpath)
-            lib = joinpath(mpath,"Contents/Frameworks/mathlink.framework/mathlink")
-            ker = joinpath(mpath,"Contents/MacOS/MathKernel")
-            return lib, ker
-        end
-    end
-
-    @static if is_linux()
-        archdir = Sys.ARCH == :arm ?    "Linux-ARM" :
-                  Sys.ARCH == :x86_64 ? "Linux-x86-64" :
-                                        "Linux"
-
-        # alternatively, "math" or "wolfram" is often in PATH, so could use
-        # echo \$InstallationDirectory | math | sed -n -e 's/Out\[1\]= //p'
-
-        for mpath in ["/usr/local/Wolfram/Mathematica","/opt/Wolfram/WolframEngine"]
-            if isdir(mpath)
-                vers = readdir(mpath)
-                ver = vers[indmax(map(VersionNumber,vers))]
-
-                lib = Libdl.find_library(
-                          ["libML$(Sys.WORD_SIZE)i4"],
-                          [joinpath(mpath,ver,"SystemFiles/Links/MathLink/DeveloperKit",archdir,"CompilerAdditions")])
-                ker = joinpath(mpath,ver,"Executables/MathKernel")
-                return lib, ker
-            end
-        end
-    end
-
-    @static if is_windows()
-        archdir = Sys.ARCH == :x86_64 ? "Windows-x86-64" :
-                                        "Windows"
-
-        #TODO: query Windows Registry, see RCall.jl
-        mpath = "C:\\Program Files\\Wolfram Research\\Mathematica"
-        if isdir(mpath)
-            vers = readdir(mpath)
-            ver = vers[indmax(map(VersionNumber,vers))]
-            lib = Libdl.find_library(
-                          ["libML$(Sys.WORD_SIZE)i4"],
-                          [joinpath(mpath,ver,"SystemFiles\\Links\\MathLink\\DeveloperKit",archdir,"SystemAdditions")])
-            ker = joinpath(mpath,ver,"math.exe")
-            return lib, ker
-        end
-    end
-
-    error("Could not find Mathematica installation")
-end
-
-const mlib,mker = find_lib_ker()
 
 """
     link = Open([path])
@@ -89,7 +29,8 @@ function Open(path = mker)
     err[]==0 || mlerror(link, "MLOpenString")
 
     # Ignore first input packet
-    @assert NextPacket(link) == PKT_INPUTNAME
+    p = NextPacket(link)
+    @assert p == PKT_INPUTNAME
     NewPacket(link)
 
     return link
@@ -172,11 +113,14 @@ end
 
 Skips to the end of the current packet on `link`. Returns a nonzero value if successful.
 
+Does nothing if you are already at the end of a packet.
+
 See [`MLNewPacket`](https://reference.wolfram.com/language/ref/c/MLNewPacket.html)
 """
 function NewPacket(link::Link)
     ccall((:MLNewPacket, mlib), Cint, (Link,), link)
 end
+
 
 
 """
@@ -189,6 +133,39 @@ See [`MLGetNext`](https://reference.wolfram.com/language/ref/c/MLGetNext.html)
 function GetNext(link::Link)
     ccall((:MLGetNext, mlib), Tkn, (Link,), link)
 end
+
+
+"""
+    Flush(link)
+
+Flushes out any buffers containing data waiting to be sent on `link`.
+
+See [`MLFlush`](https://reference.wolfram.com/language/ref/c/MLFlush.html)
+"""
+function Flush(link::Link)
+    ccall((:MLFlush, mlib), Cint, (Link,), link) != 0 ||
+        mlerror(link, "MLFlush")
+    nothing
+end
+
+
+"""
+    Ready(link)
+
+Tests whether there is data ready to be read from `link`.
+
+* Will always return immediately, and will not block.
+* You must call `Flush` before calling `Ready`.
+
+See [`MLReady`](https://reference.wolfram.com/language/ref/c/MLReady.html)
+"""
+function Ready(link::Link)
+    ccall((:MLReady, mlib), Cint, (Link,), link) != 0
+end
+
+
+
+
 
 
 mlerror(link, name) = error("MathLink Error $(Error(link)) in $name: $(ErrorMessage(link))")
@@ -231,7 +208,7 @@ Gets the type of the current object on `link` as a `Tkn` value.
 See [MLGetType](http://reference.wolfram.com/language/ref/c/MLGetType.html)
 """
 GetType(link::Link) =
-    ccall((:MLGetType, mlib), Tkn, (Link,), link) |> Char
+    ccall((:MLGetType, mlib), Tkn, (Link,), link)
 
 for (f, T) in [(:GetInteger64, Int64)
                (:GetInteger32, Int32)
@@ -276,7 +253,7 @@ function GetFunction(link::Link)
     n = Ref{Cint}()
     ccall((:MLGetUTF8Function, mlib), Cint,
           (Link, Ref{Ptr{Cuchar}}, Ref{Cint}, Ref{Cint}),
-          link, s, b, c) != 0 ||
+          link, s, b, n) != 0 ||
         mlerror(link, "MLGetUTF8Function")
     r = unsafe_string(s[], b[]) |> unescape_string |> Symbol, n[]
     ccall((:MLReleaseUTF8Symbol, mlib), Void, (Link, Ptr{Cuchar}, Cint), link, s[], b[])

@@ -11,6 +11,7 @@ module MathLink
 
 export @math, @mmimport, @mmacro, meval, MExpr, to_mma, from_mma, to_expr
 
+include("findlib.jl")
 include("low_level.jl")
 include("types.jl")
 
