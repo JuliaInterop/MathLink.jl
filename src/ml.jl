@@ -253,19 +253,19 @@ for (M, T) in [(:Integer64, Int64)
                (:Real64, Float64)]
     @eval begin
         function Put(link::Link, x::$T)
-            @chkerr ccall(($(string("MLPut",$M)), mlib), Cint, (Link, $T), link, x)
+            @chkerr ccall(($(string("MLPut",M)), mlib), Cint, (Link, $T), link, x)
             nothing
         end
         function Put{N}(link::Link, X::Array{$T,N})
             s = Cint[i for i in size(X)]
-            @chkerr ccall(($(string("MLPut",$M,"Array")), mlib), Cint,
+            @chkerr ccall(($(string("MLPut",M,"Array")), mlib), Cint,
                           (Link, Ptr{$T}, Ptr{Cint}, Ptr{Ptr{Cuchar}}, Cint),
                           link, X, s, C_NULL, N)
             nothing
         end            
         function Get(link::Link, ::Type{$T})
             i = Ref{$T}()
-            @chkerr ccall(($(string("MLGet",$M)), mlib), Cint, (Link, Ref{$T}), link, i)
+            @chkerr ccall(($(string("MLGet",M)), mlib), Cint, (Link, Ref{$T}), link, i)
             i[]
         end
         function Get(link::Link, ::Type{Array{$T}})
@@ -273,13 +273,13 @@ for (M, T) in [(:Integer64, Int64)
             rd = Ref{Ptr{Cint}}()
             rh = Ref{Ptr{Ptr{Cchar}}}()
             rn = Ref{Cint}()
-            @chkerr ccall(($(string("MLGet",$M,"Array")), mlib), Cint,
+            @chkerr ccall(($(string("MLGet",M,"Array")), mlib), Cint,
                           (Link, Ref{Ptr{$T}}, Ref{Ptr{Cint}}, Ref{Ptr{Ptr{Cchar}}}, Ref{Cint}),
                           link, rX, rd, rh, rn)
             dims = ((Int(unsafe_load(rd[],i)) for i = 1:rn[])...)
             Xw = unsafe_wrap(Array, rX[], dims)
             X = copy(Xw)
-            ccall(($(string("MLRelease",$M,"Array")), mlib), Void,
+            ccall(($(string("MLRelease",M,"Array")), mlib), Void,
                   (Link, Ptr{$T}, Ptr{Cint}, Ptr{Ptr{Cchar}}, Cint),
                   link, rX[], rd[], rh[], rn[])
             X
