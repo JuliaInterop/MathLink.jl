@@ -271,7 +271,7 @@ for (M, T) in [(:Integer64, Int64)
         function Get(link::Link, ::Type{Array{$T}})
             rX = Ref{Ptr{$T}}()
             rd = Ref{Ptr{Cint}}()
-            rh = Ref{Ptr{Ptr{Cchar}}()
+            rh = Ref{Ptr{Ptr{Cchar}}}()
             rn = Ref{Cint}()
             @chkerr ccall(($(string("MLGet",$M,"Array")), mlib), Cint,
                           (Link, Ref{Ptr{$T}}, Ref{Ptr{Cint}}, Ref{Ptr{Ptr{Cchar}}}, Ref{Cint}),
