@@ -9,6 +9,7 @@ function find_lib_ker()
         # https://github.com/JuliaLang/julia/issues/8733#issuecomment-167981954
         mpath = "/Applications/Mathematica.app"
         if isdir(mpath)
+            info("Using Mathematica installation at $mpath.")
             lib = joinpath(mpath,"Contents/Frameworks/mathlink.framework/mathlink")
             ker = joinpath(mpath,"Contents/MacOS/MathKernel")
             return lib, ker
@@ -25,6 +26,7 @@ function find_lib_ker()
 
         for mpath in ["/usr/local/Wolfram/Mathematica","/opt/Wolfram/WolframEngine"]
             if isdir(mpath)
+                info("Using Mathematica installation at $mpath.")
                 vers = readdir(mpath)
                 ver = vers[indmax(map(VersionNumber,vers))]
 
@@ -44,6 +46,7 @@ function find_lib_ker()
         #TODO: query Windows Registry, see RCall.jl
         mpath = "C:\\Program Files\\Wolfram Research\\Mathematica"
         if isdir(mpath)
+            info("Using Mathematica installation at $mpath.")
             vers = readdir(mpath)
             ver = vers[indmax(map(VersionNumber,vers))]
             lib = Libdl.find_library(
