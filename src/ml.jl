@@ -48,7 +48,7 @@ function Open(env::Env, path = mker)
     args = "-linkname '\"$path\" -mathlink' -linkmode launch"
     link = ccall((:MLOpenString, mlib), Link,
                  (Env, Cstring, Ref{Cint}),
-                 mlenv, args, err)
+                 env, args, err)
     err[]==0 || error("Could not open MathLink link")
 
     # Ignore first input packet
