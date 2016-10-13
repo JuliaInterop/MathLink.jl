@@ -150,7 +150,7 @@ function get!(link::ML.Link, ::Type{Integer})
     typemin(Int) <= i <= typemax(Int) ? Int(i) : i
 end
 
-function get!(link::Link, ::Type{AbstractFloat})
+function get!(link::ML.Link, ::Type{AbstractFloat})
     tsig = get!(link, String)
     texp = ""
     tprc = ""
@@ -174,8 +174,8 @@ function get!(link::Link, ::Type{AbstractFloat})
         return parse(Float64, tnum)
     end
 end
-function get!(link::Link, ::Type{BigFloat})
-    x = get!(link::Link, ::Type{AbstractFloat})
+function get!(link::ML.Link, ::Type{BigFloat})
+    x = get!(link, AbstractFloat)
     if isa(x,Float64)
         x = setprecision(BigFloat, 53) do
             BigFloat(x)
@@ -184,7 +184,7 @@ function get!(link::Link, ::Type{BigFloat})
     return x
 end
 
-function get!(link::Link, ::Type{MExpr})
+function get!(link::ML.Link, ::Type{MExpr})
     # NOTE: we don't use ML.GetFunction as it doesn't handle the case when the
     # function head isn't a symbol, e.g. Derivative[1][f][x]
     n = ML.GetArgCount(link)
