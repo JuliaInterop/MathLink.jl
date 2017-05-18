@@ -2,15 +2,15 @@ module ML
 
 function ptr(T)
   @assert isbits(T)
-  Array(T, 1)
+  Array{T}(1)
 end
 
-typealias Cstr Ptr{Cchar}
+const Cstr = Ptr{Cchar}
 
 include("consts.jl")
 
-typealias Env Ptr{Void}
-typealias Link Ptr{Void}
+const Env = Ptr{Void}
+const Link = Ptr{Void}
 
 
 function find_lib_ker()    
