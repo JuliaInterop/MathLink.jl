@@ -1,44 +1,110 @@
-immutable MExpr{Head}
-  args::Vector
+abstract type MExpr end
+
+struct MSymbol <: MExpr
+    name::Symbol
 end
-MExpr(head, args...) = MExpr{head}([args...])
+Base.show(io::IO, m::MSymbol) = print(io, m.name)
 
-import Base.show
+struct MString <: MExpr
+    value::String
+end
+Base.show(io::IO, m::MString) = show(io, m.value)
 
-function show{T}(io::IO, e::MExpr{T})
-  print(io, T)
-  if length(e.args) >= 1
-    print(io, "["); show(io, e.args[1])
-    for x in e.args[2:end] print(io, ", "); show(io, x) end
-    print(io, "]")
-  else
-    print(io, "[]")
-  end
+struct MReal <: MExpr
+    value::String
+end
+Base.show(io::IO, m::MReal) = print(io, m.value)
+
+struct MInteger <: MExpr
+    value::String
+end
+Base.show(io::IO, m::MInteger) = print(io, m.value)
+
+struct MFunc <: MExpr
+    head::MSymbol
+    args::Vector{Any}
+end
+MFunc(sym::Symbol, args...) = MFunc(MSymbol(sym), collect(Any, args))
+
+function Base.show(io::IO, m::MFunc)
+    print(io, m.head)
+    print(io, '[')
+    join(io, m.args, ", ")
+    print(io, ']')
 end
 
-show(io::IO, r::MExpr{:Rule}) =
-  (show(io, r.args[1]); print(io, "→"); show(io, r.args[2]))
+mexpr(x::MExpr) = x
+
+mexpr(x::Float32) = x
+mexpr(x::Float64) = x
+mexpr(x::Int32) = x
+mexpr(x::Int64) = x
+
+mexpr(x::Rational) = MFunc(:Rational, mexpr(x.num), mexpr(x.den))
+mexpr(x::Complex) = MFunc(:Complex, mexpr(real(x)), mexpr(imag(x)))
+
+mexpr(x::String) = x
+
+mexpr(x::Bool) = x ? MSymbol(:True) : MSymbol(:False)
+mexpr(x::Nothing) = MSymbol(:Nothing)
+
+
+macro mdef(jfun, mfun)
+    quote
+        MathLink.mexpr(::typeof($(esc(jfun)))) = MSymbol($(QuoteNode(mfun)))
+    end    
+end
+    
+@mdef(+, Plus)
+@mdef(-, Subtract)
+@mdef(*, Times)
+@mdef(/, Divide)
+@mdef(^, Power)
+
+@mdef log Log
+@mdef exp Exp
+@mdef sin Sin
+@mdef cos Cos
+@mdef tan Tan
+@mdef mod Mod
+
+@mdef pi Pi
+@mdef MathConstants.e E
+
+macro mexpr(ex)
+    :(mexpr($ex))
+end
+
+macro mexpr(ex::Symbol)
+    :($(Expr(:isdefined, esc(ex))) ? mexpr($(esc(ex))) : MSymbol($(QuoteNode(ex))))
+end
+
+
+macro mexpr(ex::Expr)
+    if ex.head == :call
+        :(MFunc(@mexpr($(ex.args[1])),
+                Any[$([:(@mexpr($arg)) for arg in ex.args[2:end]]...)]))
+    elseif ex.head == :block
+        :(MFunc(MSymbol(:CompoundExpression),
+                Any[$([:(@mexpr($arg)) for arg in ex.args if !isa(arg, LineNumberNode)]...)]))
+    elseif ex.head == :ref
+        :(MFunc(MSymbol(:Part),
+                Any[$([:(@mexpr($arg)) for arg in ex.args]...)]))
+    else
+        ex
+    end
+end
+
+
+#=
 
 # Conversion
-
-const aliases =
-  Dict(:*   => :Times,
-       :/   => :Divide,
-       :^   => :Power,
-       :+   => :Plus,
-       :-   => :Subtract,
-       :%   => :Mod,
-       :log => :Log,
-       :exp => :Exp,
-       :sin => :Sin,
-       :cos => :Cos,
-       :tan => :Tan)
 
 from_mma(x) = x
 const symbols = Dict(:True => true, :False => false, :Null => nothing)
 from_mma(s::Symbol) = haskey(symbols, s) ? symbols[s] : s
 
-to_mma{T<:Union{Int64,Int32,Float64,Float32,Symbol,AbstractString}}(x::T) = x
+to_mma(x::T) where {T<:Union{Int64,Int32,Float64,Float32,Symbol,AbstractString}}= x
 
 function to_mma(x::Expr)
   if x.head == :call
@@ -64,8 +130,8 @@ end
 
 to_mma(x::Bool) = x ? :True : :False
 
-to_mma{T}(x::MExpr{T}) = MExpr{T}(map(to_mma, x.args))
-from_mma{T}(x::MExpr{T}) = MExpr{T}(map(from_mma, x.args))
+to_mma(x::MExpr{T}) where {T} = MExpr{T}(map(to_mma, x.args))
+from_mma(x::MExpr{T}) where {T} = MExpr{T}(map(from_mma, x.args))
 
 to_mma(x::Rational) = MExpr(:Rational, x.num, x.den)
 from_mma(f::MExpr{:Rational}) = f.args[1]//f.args[2]
@@ -79,7 +145,7 @@ from_mma(l::MExpr{:List}) = map(from_mma, l.args)
 # Julia Expression Conversion
 
 to_expr(x) = x
-to_expr{T}(x::MExpr{T}) = Expr(:call, T, map(to_expr, x.args)...)
+to_expr(x::MExpr{T}) where {T} = Expr(:call, T, map(to_expr, x.args)...)
 
 for (j, m) in aliases
   j = Expr(:quote, j)
@@ -90,3 +156,4 @@ end
 import Base.convert
 convert(::Type{Expr}, x::MExpr) = to_expr(from_mma(x))
 convert(::Type{MExpr}, x::Expr) = to_mma(x)
+=#

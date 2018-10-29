@@ -1,0 +1,6 @@
+name = "MathLink"
+uuid = "18c93696-a329-5786-9845-8443133fa0b4"
+version = "0.1.0"
+
+[deps]
+Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
