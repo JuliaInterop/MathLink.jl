@@ -72,7 +72,7 @@ macro mmacro(expr)
                 Expr(:call, $fsym, args...))))
 
   :(macro $f(args...)
-      Expr(:call, :meval, $call, $((t!=nothing?[t]:[])...))
+      Expr(:call, :meval, $call, $((t!=nothing ? [t] : [])...))
     end)
 end
 
@@ -84,8 +84,10 @@ end
 # Permalink and eval
 # ------------------
 
+const link = Ptr{Nothing}(C_NULL)
+
 function __init__()
-  global const link = ML.Open()
+  global link = ML.Open()
 end
 
 meval(expr) = meval(expr, Any)
@@ -99,7 +101,7 @@ function meval(link::ML.Link, expr, T)
       handle_packets(link, Any) |> from_mma |> to_expr :
       handle_packets(link, T)
   catch
-    warn("Error occured in meval: you may need to restart Julia/MathLink")
+    @warn "Error occured in meval: you may need to restart Julia/MathLink"
     rethrow()
   end
 end
@@ -182,7 +184,7 @@ for (T, f) in [(Int64,   :PutInteger64)
   @eval put!(link::ML.Link, x::$T) = (ML.$f)(link, x)
 end
 
-function put!{T}(link::ML.Link, expr::MExpr{T})
+function put!(link::ML.Link, expr::MExpr{T}) where {T}
   put!(link, T, length(expr.args))
   for x in expr.args put!(link, x) end
 end

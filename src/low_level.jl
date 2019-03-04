@@ -1,20 +1,20 @@
 module ML
 
 function ptr(T)
-  @assert isbits(T)
-  Array{T}(1)
+  @assert isbitstype(T)
+  Vector{T}([1])
 end
 
 const Cstr = Ptr{Cchar}
 
 include("consts.jl")
 
-const Env = Ptr{Void}
-const Link = Ptr{Void}
+const Env = Ptr{Nothing}
+const Link = Ptr{Nothing}
 
 
 function find_lib_ker()    
-    @static if is_apple()
+    @static if Sys.isapple()
         # TODO: query OS X metadata for non-default installations
         # https://github.com/JuliaLang/julia/issues/8733#issuecomment-167981954
         mpath = "/Applications/Mathematica.app"        
@@ -25,7 +25,7 @@ function find_lib_ker()
         end        
     end
 
-    @static if is_linux()
+    @static if Sys.islinux()
         archdir = Sys.ARCH == :arm ?    "Linux-ARM" :
                   Sys.ARCH == :x86_64 ? "Linux-x86-64" :
                                         "Linux"
@@ -47,7 +47,7 @@ function find_lib_ker()
         end
     end
 
-    @static if is_windows()
+    @static if Sys.iswindows()
         archdir = Sys.ARCH == :x86_64 ? "Windows-x86-64" :
                                         "Windows"
 
@@ -90,7 +90,7 @@ function Open(path = mker)
   return link
 end
 
-Close(link::Link) = ccall((:MLClose, mlib), Void, (Link,), link)
+Close(link::Link) = ccall((:MLClose, mlib), Nothing, (Link,), link)
 
 ErrorMessage(link::Link) =
   ccall((:MLErrorMessage, mlib), Cstr, (Link,), link) |> unsafe_string
@@ -142,7 +142,7 @@ function GetString(link::Link)
   s = ptr(Cstr)
   ccall((:MLGetString, mlib), Cint, (Link, Ptr{Cstr}), link, s) != 0 ||
     mlerror(link, "GetString")
-  r = s[1] |> unsafe_string |> unescape_string
+  r = s[1] |> unsafe_string
   ReleaseString(link, s)
   return r
 end
@@ -166,7 +166,7 @@ function GetFunction(link::Link)
   return r
 end
 
-ReleaseString(link::Link, s) = ccall((:MLReleaseString, mlib), Void, (Link, Cstr), link, s[1])
-ReleaseSymbol(link::Link, s) = ccall((:MLReleaseSymbol, mlib), Void, (Link, Cstr), link, s[1])
+ReleaseString(link::Link, s) = ccall((:MLReleaseString, mlib), Nothing, (Link, Cstr), link, s[1])
+ReleaseSymbol(link::Link, s) = ccall((:MLReleaseSymbol, mlib), Nothing, (Link, Cstr), link, s[1])
 
 end

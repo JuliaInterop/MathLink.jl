@@ -1,11 +1,11 @@
-immutable MExpr{Head}
+struct MExpr{Head}
   args::Vector
 end
 MExpr(head, args...) = MExpr{head}([args...])
 
 import Base.show
 
-function show{T}(io::IO, e::MExpr{T})
+function show(io::IO, e::MExpr{T}) where {T}
   print(io, T)
   if length(e.args) >= 1
     print(io, "["); show(io, e.args[1])
@@ -38,7 +38,7 @@ from_mma(x) = x
 const symbols = Dict(:True => true, :False => false, :Null => nothing)
 from_mma(s::Symbol) = haskey(symbols, s) ? symbols[s] : s
 
-to_mma{T<:Union{Int64,Int32,Float64,Float32,Symbol,AbstractString}}(x::T) = x
+to_mma(x::T) where {T<:Union{Int64,Int32,Float64,Float32,Symbol,AbstractString}} = x
 
 function to_mma(x::Expr)
   if x.head == :call
@@ -64,8 +64,8 @@ end
 
 to_mma(x::Bool) = x ? :True : :False
 
-to_mma{T}(x::MExpr{T}) = MExpr{T}(map(to_mma, x.args))
-from_mma{T}(x::MExpr{T}) = MExpr{T}(map(from_mma, x.args))
+to_mma(x::MExpr{T}) where {T} = MExpr{T}(map(to_mma, x.args))
+from_mma(x::MExpr{T}) where {T} = MExpr{T}(map(from_mma, x.args))
 
 to_mma(x::Rational) = MExpr(:Rational, x.num, x.den)
 from_mma(f::MExpr{:Rational}) = f.args[1]//f.args[2]
@@ -79,7 +79,7 @@ from_mma(l::MExpr{:List}) = map(from_mma, l.args)
 # Julia Expression Conversion
 
 to_expr(x) = x
-to_expr{T}(x::MExpr{T}) = Expr(:call, T, map(to_expr, x.args)...)
+to_expr(x::MExpr{T}) where {T} = Expr(:call, T, map(to_expr, x.args)...)
 
 for (j, m) in aliases
   j = Expr(:quote, j)
