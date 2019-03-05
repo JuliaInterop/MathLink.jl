@@ -48,8 +48,8 @@ function to_mma(x::Expr)
     MExpr{:CompoundExpression}(map(to_mma, x.args))
   elseif x.head == :ref
     MExpr{:Part}(map(to_mma, x.args))
-  elseif x.head == :cell1d
-    MExpr{:List}(x.args)
+  elseif x.head == :braces
+    MExpr{:List}(map(to_mma, x.args))
   else
     error("Unsupported $(x.head) expression.")
   end
