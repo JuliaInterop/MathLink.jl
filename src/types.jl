@@ -32,7 +32,13 @@ const aliases =
        :exp => :Exp,
        :sin => :Sin,
        :cos => :Cos,
-       :tan => :Tan)
+       :tan => :Tan,
+       :(<)  => :Less,
+       :(<=) => :LessEqual,
+       :(>)  => :Greater,
+       :(>=) => :GreaterEqual,
+       :(==) => :Equal,
+       :(!=) => :Unequal)
 
 from_mma(x) = x
 const symbols = Dict(:True => true, :False => false, :Null => nothing)
@@ -50,6 +56,9 @@ function to_mma(x::Expr)
     MExpr{:Part}(map(to_mma, x.args))
   elseif x.head == :braces
     MExpr{:List}(map(to_mma, x.args))
+  elseif haskey(aliases, x.head)
+    head = aliases[x.head]
+    MExpr{head}(map(to_mma, x.args))
   else
     error("Unsupported $(x.head) expression.")
   end
