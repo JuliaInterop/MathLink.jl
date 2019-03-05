@@ -115,7 +115,7 @@ function handle_packets(link::ML.Link, T)
       print(get!(link, String))
     elseif packet == :MessagePacket
       ML.NewPacket(link)
-      warn(get!(link).args[1])
+      @warn(get!(link).args[1])
       msg = true
     else
       error("Unsupported packet type $packet")
