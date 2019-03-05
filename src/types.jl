@@ -86,6 +86,9 @@ from_mma(x::MExpr{:Complex}) = Complex(x.args[1], x.args[2])
 to_mma(xs::Vector) = MExpr{:List}(map(to_mma, xs))
 from_mma(l::MExpr{:List}) = map(from_mma, l.args)
 
+to_mma(xs::Pair) = MExpr{:Rule}(map(to_mma, xs))
+from_mma(l::MExpr{:Rule}) = from_mma(l.args[1]) => from_mma(l.args[2])
+
 # Julia Expression Conversion
 
 to_expr(x) = x
