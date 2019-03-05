@@ -38,7 +38,8 @@ const aliases =
        :(>)  => :Greater,
        :(>=) => :GreaterEqual,
        :(==) => :Equal,
-       :(!=) => :Unequal)
+       :(!=) => :Unequal,
+       :(=>) => :Rule)
 
 from_mma(x) = x
 const symbols = Dict(:True => true, :False => false, :Null => nothing)
