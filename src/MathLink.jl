@@ -101,7 +101,7 @@ function meval(link::ML.Link, expr, T)
       handle_packets(link, Any) |> from_mma |> to_expr :
       handle_packets(link, T)
   catch
-    @warn "Error occured in meval: you may need to restart Julia/MathLink"
+    @warn("Error occured in meval: you may need to restart Julia/MathLink")
     rethrow()
   end
 end
