@@ -84,14 +84,14 @@ end
 # Permalink and eval
 # ------------------
 
-const link = Ptr{Nothing}(C_NULL)
+const _link = Ref{Ptr{Nothing}}(0)
 
 function __init__()
-  global link = ML.Open()
+  _link[] = ML.Open()
 end
 
 meval(expr) = meval(expr, Any)
-meval(expr, T) = meval(link, expr, T)
+meval(expr, T) = meval(_link[], expr, T)
 
 function meval(link::ML.Link, expr, T)
   try
