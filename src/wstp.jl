@@ -54,7 +54,10 @@ struct MathLinkError <: Exception
     msg::String
 end
 function MathLinkError(link::Link)
-    MathLinkError(unsafe_string(ccall((:MLErrorMessage, mlib), Cstring, (CLink,), link)))
+    msg = unsafe_string(ccall((:MLErrorMessage, mlib), Cstring, (CLink,), link))
+    ClearError(link)
+    NewPacket(link)
+    MathLinkError(msg)
 end
 
 for f in [:Error :ClearError :EndPacket :NextPacket :NewPacket]

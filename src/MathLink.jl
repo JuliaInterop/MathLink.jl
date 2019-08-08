@@ -3,9 +3,6 @@ module MathLink
 # TODO:
 #   Read and store native arrays / matrices
 #   MRefs (https://github.com/one-more-minute/clj-mma?source=c#mathematica-vars)
-#   Better error recovery
-#   MathLink options
-#   Connect to running session
 
 export @mexpr, meval
 
