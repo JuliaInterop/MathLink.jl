@@ -9,8 +9,79 @@ module MathLink
 
 export @mexpr, meval
 
-include("low_level.jl")
+include("findlib.jl")
 include("types.jl")
+include("consts.jl")
+include("wstp.jl")
+include("init.jl")
+
+# ------------------
+# Permalink and eval
+# ------------------
+
+
+function get(link::Link, ::Type{WExpr})
+    wsym, nargs = getfunction(link)
+    WExpr(wsym, [get(link, Any) for i = 1:nargs])
+end
+function put(link::Link, w::WExpr)
+    putfunction(link, w.head, length(w.args))
+    for arg in w.args
+        put(link, arg)
+    end
+    nothing
+end
+
+function get(link::Link, ::Type{Any})
+    t = GetType(link)
+
+    if t == TK.INT
+        get(link, Int)
+    elseif t == TK.FUNC
+        get(link, WExpr)
+    elseif t == TK.STR
+        get(link, String)
+    elseif t == TK.REAL
+        get(link, Float64)
+    elseif t == TK.SYM
+        get(link, WSymbol)
+    elseif t == TK.ERROR
+        error("Link has suffered error $(Error(link)): $(ErrorMessage(link))")
+    else
+        error("Unsupported data type $t ($(Int(t)))")
+    end
+end
+
+function handle_packets(link::Link, T)
+    msg = false
+    while true
+        packet, _ = getfunction(link)
+        if packet.name == "ReturnPacket"
+            return get(link, T)
+        elseif packet.name == "TextPacket"
+            print(get(link, String))
+        elseif packet.name == "MessagePacket"
+            NewPacket(link)
+            @warn get(link, Any)
+            msg = true
+            # msg && T != Any &&
+            #     error("Output suppressed due to warning: " * string(get(link)))
+        else
+            error("Unsupported packet type $packet")
+        end
+    end
+end
+
+
+meval(expr) = meval(expr, Any)
+meval(expr, T) = meval(_defaultlink(), expr, T)
+
+function meval(link::Link, expr::WExpr, T)
+    put(link, WExpr(WSymbol("EvaluatePacket"), Any[expr]))
+    EndPacket(link)
+    handle_packets(link, T)
+end
+
 
 #=
 # -------------------
@@ -80,110 +151,43 @@ macro math(expr)
 end
 =#
 
-# ------------------
-# Permalink and eval
-# ------------------
-
-const globallink = Ref(C_NULL)
-function __init__()
-    globallink[] = ML.Open()
-end
 
 
-meval(expr) = meval(expr::MExpr, Any)
-meval(expr, T) = meval(globallink[], expr::MExpr, T)
-
-function meval(link::ML.Link, expr::MExpr, T)
-    put!(link, MFunc(MSymbol(:EvaluatePacket), Any[expr]))
-    ML.EndPacket(link)
-    handle_packets(link, T)
-end
-
-
-function handle_packets(link::ML.Link, T)
-    packet = :start
-    msg = false
-    while packet != :ReturnPacket
-        if packet == :start
-        elseif packet == :TextPacket
-            print(get!(link, String))
-        elseif packet == :MessagePacket
-            ML.NewPacket(link)
-            warn(get!(link, Any).args[1])
-            msg = true
-        else
-            error("Unsupported packet type $packet")
-        end
-        packet, n = ML.GetFunction(link)
-    end
-    msg && T != Any &&
-        error("Output suppressed due to warning: " * string(get!(link)))
-    return get!(link, T)
-end
-
+#=
 # --------------
 # Low level data
 # --------------
 
 # Reading
 
-# Perhaps add a type check here, depending on perf hit
-for (T, f) in [(Int64,   :GetInteger64)
-               (Int32,   :GetInteger32)
-               (Float64, :GetReal64)
-               (String,  :GetString)
-               (Symbol,  :GetSymbol)]
-  @eval get!(link::ML.Link, ::Type{$T}) = (ML.$f)(link)
-end
 
-get!(link::ML.Link, ::Type{BigInt}) = parse(BigInt, get!(link, String))
+get!(link::Link, ::Type{BigInt}) = parse(BigInt, get!(link, String))
 
-#get!(link::ML.Link, T) = convert(T, from_mma(get!(link)))
+#get!(link::Link, T) = convert(T, from_mma(get!(link)))
 
-function get!(link::ML.Link, ::Type{Any})
-    t = ML.GetType(link)
-
-    if t == ML.TK.INT
-        MInteger(get!(link, String))
-    elseif t == ML.TK.FUNC
-        f, nargs = ML.GetFunction(link)
-        MFunc(MSymbol(f),
-                  Any[get!(link, Any) for i=1:nargs])
-    elseif t == ML.TK.STR
-        MString(get!(link, String))
-    elseif t == ML.TK.REAL
-        MReal(get!(link, String))
-    elseif t == ML.TK.SYM
-        MSymbol(get!(link, Symbol))
-    elseif t == ML.TK.ERROR
-        error("Link has suffered error $(ML.Error(link)): $(ML.ErrorMessage(link))")
-    else
-        error("Unsupported data type $t ($(Int(t)))")
-    end
-end
 
 # Writing
 
-function put!(link::ML.Link, m::MFunc)
-    ML.PutFunction(link, string(m.head), length(m.args))
+function put!(link::Link, m::MFunc)
+    PutFunction(link, string(m.head), length(m.args))
     for arg in m.args
         put!(link, arg)
     end
 end
-put!(link::ML.Link, m::MSymbol) = 
-    ML.PutSymbol(link, m.name)
+put!(link::Link, m::MSymbol) = 
+    PutSymbol(link, m.name)
 
-put!(link::ML.Link, m::MString) = 
-    ML.PutString(link, m.value)
+put!(link::Link, m::MString) = 
+    PutString(link, m.value)
 
-function put!(link::ML.Link, m::MReal)
-    ML.PutType(link, ML.TK.REAL)
-    ML.PutString(link, m.value)
+function put!(link::Link, m::MReal)
+    PutType(link, TK.REAL)
+    PutString(link, m.value)
 end
 
-function put!(link::ML.Link, m::MInteger)
-    ML.PutType(link, ML.TK.INT)
-    ML.PutString(link, m.value)
+function put!(link::Link, m::MInteger)
+    PutType(link, TK.INT)
+    PutString(link, m.value)
 end
 
 
@@ -192,10 +196,10 @@ for (T, f) in [(Int64,   :PutInteger64)
                (Float64, :PutReal64)
                (AbstractString,  :PutString)
                (Symbol,  :PutSymbol)]
-  @eval put!(link::ML.Link, x::$T) = (ML.$f)(link, x)
+  @eval put!(link::Link, x::$T) = ($f)(link, x)
 end
 
-
+=# 
 #include("display.jl")
 
 end
