@@ -76,7 +76,7 @@ end
 meval(expr) = meval(expr, Any)
 meval(expr, T) = meval(_defaultlink(), expr, T)
 
-function meval(link::Link, expr::WExpr, T)
+function meval(link::Link, expr, T)
     put(link, WExpr(WSymbol("EvaluatePacket"), Any[expr]))
     EndPacket(link)
     handle_packets(link, T)

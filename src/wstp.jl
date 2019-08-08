@@ -179,7 +179,8 @@ for (f, T) in [
 ]
     @eval begin
         function put(link::Link, x::$T)
-            @wschk ccall(($(QuoteNode(Symbol(:MLPut, f))), mlib), Cint, (CLink, $T), link, x)
+            # note slightly bizarre handling of Float32
+            @wschk ccall(($(QuoteNode(Symbol(:MLPut, f))), mlib), Cint, (CLink, $(f == :Real32 ? Float64 : T)), link, x)
             nothing
         end
         function get(link::Link, ::Type{$T})
@@ -193,6 +194,9 @@ end
 # Get fns
 GetType(link::Link) =
   ccall((:MLGetType, mlib), Cint, (CLink,), link) |> Char
+
+GetRawType(link::Link) =
+  ccall((:MLGetRawType, mlib), Cint, (CLink,), link) |> Char
 
 PutType(link::Link, c::Char) =
     ccall((:MLPutType, mlib), Cint, (CLink,Cint), link, c) != 0 ||
