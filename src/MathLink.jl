@@ -6,7 +6,7 @@ module MathLink
 
 export @w_cmd, meval
 
-include("findlib.jl")
+include("../deps/deps.jl")
 include("types.jl")
 include("consts.jl")
 include("wstp.jl")
