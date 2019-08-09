@@ -50,8 +50,8 @@ function get(link::Link, ::Type{Any})
 end
 
 function handle_packets(link::Link, T)
-    msg = false
     while true
+        # TODO: use WSNextPacket?
         packet, _ = getfunction(link)
         if packet.name == "ReturnPacket"
             return get(link, T)
@@ -59,10 +59,8 @@ function handle_packets(link::Link, T)
             print(get(link, String))
         elseif packet.name == "MessagePacket"
             NewPacket(link)
-            @warn get(link, Any)
-            msg = true
-            # msg && T != Any &&
-            #     error("Output suppressed due to warning: " * string(get(link)))
+            packet, _ = getfunction(link) # TextPacket
+            @warn get(link, String)
         else
             error("Unsupported packet type $packet")
         end
@@ -70,14 +68,20 @@ function handle_packets(link::Link, T)
 end
 
 
-meval(expr) = meval(expr, Any)
-meval(expr, T) = meval(_defaultlink(), expr, T)
-
 function meval(link::Link, expr, T)
     put(link, WExpr(WSymbol("EvaluatePacket"), Any[expr]))
     EndPacket(link)
     handle_packets(link, T)
 end
+meval(expr) = meval(expr, Any)
+meval(expr, T) = meval(_defaultlink(), expr, T)
+
+function mevalstr(link, str::AbstractString, T)
+    meval(link, WExpr(WSymbol("ToExpression"), Any[str]), T)
+end
+mevalstr(expr) = mevalstr(expr, Any)
+mevalstr(expr, T) = mevalstr(_defaultlink(), expr, T)
+
 
 
 #=
