@@ -18,18 +18,17 @@ include("init.jl")
 # ------------------
 function handle_packets(link::Link, T)
     while true
-        # TODO: use WSNextPacket?
-        packet, _ = getfunction(link)
-        if packet.name == "ReturnPacket"
+        pkt = nextpacket(link)
+        if pkt == PKT_RETURN
             return get(link, T)
-        elseif packet.name == "TextPacket"
+        elseif pkt == PKT_TEXT
             print(get(link, String))
-        elseif packet.name == "MessagePacket"
+        elseif pkt == PKT_MESSAGE
             NewPacket(link)
-            packet, _ = getfunction(link) # TextPacket
+            @assert nextpacket(link) == PKT_TEXT
             @warn get(link, String)
         else
-            error("Unsupported packet type $packet")
+            error("Unsupported packet type $pkt")
         end
     end
 end

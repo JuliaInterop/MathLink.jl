@@ -1,38 +1,38 @@
 # Constants - from mathlink.h
 
-module Pkt
-  const ILLEGAL    =   0
+@enum Packet begin
+  PKT_ILLEGAL    =   0
 
-  const CALL       =   7
-  const EVALUATE   =  13
-  const RETURN     =   3
+  PKT_CALL       =   7
+  PKT_EVALUATE   =  13
+  PKT_RETURN     =   3
 
-  const INPUTNAME  =   8
-  const ENTERTEXT  =  14
-  const ENTEREXPR  =  15
-  const OUTPUTNAME =   9
-  const RETURNTEXT =   4
-  const RETURNEXPR =  16
+  PKT_INPUTNAME  =   8
+  PKT_ENTERTEXT  =  14
+  PKT_ENTEREXPR  =  15
+  PKT_OUTPUTNAME =   9
+  PKT_RETURNTEXT =   4
+  PKT_RETURNEXPR =  16
 
-  const DISPLAY    =  11
-  const DISPLAYEND =  12
+  PKT_DISPLAY    =  11
+  PKT_DISPLAYEND =  12
 
-  const MESSAGE    =   5
-  const TEXT       =   2
+  PKT_MESSAGE    =   5
+  PKT_TEXT       =   2
 
-  const INPUT      =   1
-  const INPUTSTR   =  21
-  const MENU       =   6
-  const SYNTAX     =  10
+  PKT_INPUT      =   1
+  PKT_INPUTSTR   =  21
+  PKT_MENU       =   6
+  PKT_SYNTAX     =  10
 
-  const SUSPEND    =  17
-  const RESUME     =  18
+  PKT_SUSPEND    =  17
+  PKT_RESUME     =  18
 
-  const BEGINDLG   =  19
-  const ENDDLG     =  20
+  PKT_BEGINDLG   =  19
+  PKT_ENDDLG     =  20
 
-  const FIRSTUSER  = 128
-  const LASTUSER   = 255
+  PKT_FIRSTUSER  = 128
+  PKT_LASTUSER   = 255
 end
 
 @enum Token begin

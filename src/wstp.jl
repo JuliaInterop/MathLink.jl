@@ -60,10 +60,12 @@ function MathLinkError(link::Link)
     MathLinkError(msg)
 end
 
-for f in [:Error :ClearError :EndPacket :NextPacket :NewPacket]
+for f in [:Error, :ClearError, :EndPacket, :NewPacket]
   fstr = string("ML", f)
   @eval $f(link::Link) = ccall(($fstr, mlib), Cint, (CLink,), link)
 end
+
+nextpacket(link::Link) = ccall((:MLNextPacket, mlib), Packet, (CLink,), link)
 
 mlerror(link, name) = error("MathLink Error $(Error(link)) in $name: " * ErrorMessage(link))
 

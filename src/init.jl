@@ -23,7 +23,7 @@ function _defaultlink()
         open!(defaultlink, globalenv, args)
         
         # Ignore first input packet
-        @assert NextPacket(defaultlink) == Pkt.INPUTNAME
+        @assert nextpacket(defaultlink) == PKT_INPUTNAME
         NewPacket(defaultlink)
     end
     return defaultlink
