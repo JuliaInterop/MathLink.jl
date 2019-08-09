@@ -4,51 +4,18 @@ module MathLink
 #   Read and store native arrays / matrices
 #   MRefs (https://github.com/one-more-minute/clj-mma?source=c#mathematica-vars)
 
-export @mexpr, meval
+export @w_cmd, meval
 
 include("findlib.jl")
 include("types.jl")
 include("consts.jl")
 include("wstp.jl")
+include("extras.jl")
 include("init.jl")
 
 # ------------------
 # Permalink and eval
 # ------------------
-
-
-function get(link::Link, ::Type{WExpr})
-    wsym, nargs = getfunction(link)
-    WExpr(wsym, [get(link, Any) for i = 1:nargs])
-end
-function put(link::Link, w::WExpr)
-    putfunction(link, w.head, length(w.args))
-    for arg in w.args
-        put(link, arg)
-    end
-    nothing
-end
-
-function get(link::Link, ::Type{Any})
-    t = GetType(link)
-
-    if t == TK.INT
-        get(link, Int)
-    elseif t == TK.FUNC
-        get(link, WExpr)
-    elseif t == TK.STR
-        get(link, String)
-    elseif t == TK.REAL
-        get(link, Float64)
-    elseif t == TK.SYM
-        get(link, WSymbol)
-    elseif t == TK.ERROR
-        error("Link has suffered error $(Error(link)): $(ErrorMessage(link))")
-    else
-        error("Unsupported data type $t ($(Int(t)))")
-    end
-end
-
 function handle_packets(link::Link, T)
     while true
         # TODO: use WSNextPacket?
@@ -82,7 +49,17 @@ end
 mevalstr(expr) = mevalstr(expr, Any)
 mevalstr(expr, T) = mevalstr(_defaultlink(), expr, T)
 
+function parseexpr(str::AbstractString)
+    r = meval(WExpr(WSymbol("ToExpression"), Any[str, WSymbol("InputForm"), WSymbol("Hold")]))
+    r.args[1]    
+end
 
+macro w_cmd(str)
+    parseexpr(str)
+end
+
+(w::WSymbol)(args...) = meval(WExpr(w, collect(Any, args)))
+(w::WExpr)(args...) = meval(WExpr(w, collect(Any, args)))
 
 #=
 # -------------------
@@ -152,55 +129,6 @@ macro math(expr)
 end
 =#
 
-
-
-#=
-# --------------
-# Low level data
-# --------------
-
-# Reading
-
-
-get!(link::Link, ::Type{BigInt}) = parse(BigInt, get!(link, String))
-
-#get!(link::Link, T) = convert(T, from_mma(get!(link)))
-
-
-# Writing
-
-function put!(link::Link, m::MFunc)
-    PutFunction(link, string(m.head), length(m.args))
-    for arg in m.args
-        put!(link, arg)
-    end
-end
-put!(link::Link, m::MSymbol) = 
-    PutSymbol(link, m.name)
-
-put!(link::Link, m::MString) = 
-    PutString(link, m.value)
-
-function put!(link::Link, m::MReal)
-    PutType(link, TK.REAL)
-    PutString(link, m.value)
-end
-
-function put!(link::Link, m::MInteger)
-    PutType(link, TK.INT)
-    PutString(link, m.value)
-end
-
-
-for (T, f) in [(Int64,   :PutInteger64)
-               (Int32,   :PutInteger32)
-               (Float64, :PutReal64)
-               (AbstractString,  :PutString)
-               (Symbol,  :PutSymbol)]
-  @eval put!(link::Link, x::$T) = ($f)(link, x)
-end
-
-=# 
 #include("display.jl")
 
 end

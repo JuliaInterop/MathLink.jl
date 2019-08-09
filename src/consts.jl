@@ -35,38 +35,59 @@ module Pkt
   const LASTUSER   = 255
 end
 
-module TK
-  const OLDINT  =    'I'    # /* 73 Ox49 01001001 */ # /* integer leaf node */
-  const OLDREAL =    'R'    # /* 82 Ox52 01010010 */ # /* real leaf node */
+@enum Token begin
+    TK_ERROR    = 0           # /* bad token */
 
-  const FUNC    = 'F'   # /* 70 Ox46 01000110 */ # /* non-leaf node */
+    TK_OLDINT   = Cint('I')   # /* 73 Ox49 01001001 */ # /* integer leaf node */
+    TK_OLDREAL  = Cint('R')   # /* 82 Ox52 01010010 */ # /* real leaf node */
+    TK_FUNC     = Cint('F')   # /* 70 Ox46 01000110 */ # /* non-leaf node */
 
-  const ERROR   = Char(0)   # /* bad token */
-  const ERR     = Char(0)   # /* bad token */
+    TK_STR      = Cint('"')   # /* 34 0x22 00100010 */
+    TK_SYM      = Cint('#')   # /* 35 0x23 # 00100011 */
 
-  const STR     = '"'         # /* 34 0x22 00100010 */
-  const SYM     = '\043'      # /* 35 0x23 # 00100011 */ # /* octal here as hash requires a trigraph */
+    TK_REAL     = Cint('*')   # /* 42 0x2A 00101010 */
+    TK_INT      = Cint('+')   # /* 43 0x2B 00101011 */
 
-  const REAL    = '*'         # /* 42 0x2A 00101010 */
-  const INT     = '+'         # /* 43 0x2B 00101011 */
+    # /* The following defines are for internal use only */
+    TK_PCTEND   = Cint(']')    # /* at end of top level expression */
+    TK_END      = Cint('\n')
+    TK_AEND     = Cint('\r')
+    TK_SEND     = Cint(',')
+    TK_CONT     = Cint('\\')
+    TK_ELEN     = Cint(')')
+    TK_NULL     = Cint('.')
+    TK_OLDSYM   = Cint('Y')    # /* 89 0x59 01011001 */
+    TK_OLDSTR   = Cint('S')    # /* 83 0x53 01010011 */    
+    TK_PACKED   = Cint('P')    # /* 80 0x50 01010000 */
+    TK_ARRAY    = Cint('A')    # /* 65 0x41 01000001 */
+    TK_DIM      = Cint('D')    # /* 68 0x44 01000100 */
+    
+    TK_INVALID  = 155
+    TK_INT8     = 160
+    TK_UINT8    = 161
+    
+    TK_INT16_BE    = 162
+    TK_UINT16_BE   = 163
+    TK_INT32_BE    = 164
+    TK_UINT32_BE   = 165
+    TK_INT64_BE    = 166
+    TK_UINT64_BE   = 167
 
-  # /* The following defines are for internal use only */
-  const PCTEND  = ']'     # /* at end of top level expression */
-  const APCTEND = '\n'    # /* at end of top level expression */
-  const END     = '\n'
-  const AEND    = '\r'
-  const SEND    = ','
+    TK_INT16_LE    = 226
+    TK_UINT16_LE   = 227
+    TK_INT32_LE    = 228
+    TK_UINT32_LE   = 229
+    TK_INT64_LE    = 230
+    TK_UINT64_LE   = 231
+    
+    TK_FLOAT32_BE  = 180
+    TK_FLOAT64_BE  = 182
+    TK_FLOAT128_BE = 184
 
-  const CONT    = '\\'
-  const ELEN    = ' '
-
-  const NULL    = '.'
-  const OLDSYM  = 'Y'     # /* 89 0x59 01011001 */
-  const OLDSTR  = 'S'     # /* 83 0x53 01010011 */
-
-  const PACKED  = 'P'     # /* 80 0x50 01010000 */
-  const ARRAY   = 'A'     # /* 65 0x41 01000001 */
-  const DIM     = 'D'     # /* 68 0x44 01000100 */
+    TK_FLOAT32_LE  = 244
+    TK_FLOAT64_LE  = 246
+    TK_FLOAT128_LE = 248
+    
 end
 
 module ERR

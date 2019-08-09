@@ -7,7 +7,10 @@ struct WSymbol
     name::String
 end
 WSymbol(sym::Symbol) = WSymbol(String(sym))
-Base.show(io::IO, s::WSymbol) = print(io, s.name)
+Base.print(io::IO, s::WSymbol) = print(io, s.name)
+Base.show(io::IO, s::WSymbol) = print(io, "w`", s, "`")
+
+
 
 struct WReal
     value::String
@@ -25,15 +28,15 @@ struct WFunc
 end
 
 struct WExpr
-    head::WSymbol
-    args::Vector{Any}
+    head
+    args::AbstractVector
 end
 WExpr(sym::Symbol, args...) = WExpr(WSymbol(String(sym)), collect(Any, args))
 
-function Base.show(io::IO, w::WFunc)
+function Base.print(io::IO, w::WExpr)    
     print(io, w.head)
     print(io, '[')
     join(io, w.args, ", ")
     print(io, ']')
 end
-
+Base.show(io::IO, w::WExpr) = print(io, "w`", w, "`")

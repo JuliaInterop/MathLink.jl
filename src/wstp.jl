@@ -76,6 +76,22 @@ macro wschk(expr)
     end
 end
 
+function getargcount(link::Link)
+    r = Ref{Cint}()
+    # int WSGetArgCount(WSLINK link,int *n)
+    @wschk ccall((:MLGetArgCount, mlib), Cint,
+                 (CLink, Ptr{Cint}),
+                 link, r)
+    r[]
+end
+
+function putargcount(link::Link, n::Integer)
+    # int WSPutArgCount(WSLINK link,int n)
+    @wschk ccall((:MLPutArgCount, mlib), Cint,
+                 (CLink, Cint),
+                 link, n)
+    nothing
+end
 function putfunction(link::Link, w::WSymbol, nargs::Integer)
     # int MLPutUTF8Function(( MLLINK l , const unsigned char * s , int v , int n ) 
     @wschk ccall((:MLPutUTF8Function, mlib), Cint,
@@ -194,13 +210,21 @@ for (f, T) in [
     end
 end
 
+
+
 # Get fns
 GetType(link::Link) =
-  ccall((:MLGetType, mlib), Cint, (CLink,), link) |> Char
+  ccall((:MLGetType, mlib), Token, (CLink,), link)
 
 GetRawType(link::Link) =
-  ccall((:MLGetRawType, mlib), Cint, (CLink,), link) |> Char
+  ccall((:MLGetRawType, mlib), Token, (CLink,), link)
 
-PutType(link::Link, c::Char) =
-    ccall((:MLPutType, mlib), Cint, (CLink,Cint), link, c) != 0 ||
-        throw(MathLinkError(link))
+PutType(link::Link, t::Token) =
+    @wschk ccall((:MLPutType, mlib), Cint, (CLink, Token), link, t)
+
+GetNext(link::Link) =
+  ccall((:MLGetNext, mlib), Token, (CLink,), link)
+
+GetNextRaw(link::Link) =
+  ccall((:MLGetNextRaw, mlib), Token, (CLink,), link)
+
