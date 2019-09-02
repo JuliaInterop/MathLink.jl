@@ -52,7 +52,7 @@ function _defaultlink()
 
         # Ignore first input packet
         @assert nextpacket(defaultlink) == PKT_INPUTNAME
-        NewPacket(defaultlink)
+        newpacket(defaultlink)
     end
     return defaultlink
 end

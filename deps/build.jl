@@ -1,7 +1,9 @@
 using Libdl
 
 function find_lib_ker()
-    if Sys.isapple()
+    if haskey(ENV,"JULIA_MATHLINK") && haskey(ENV,"JULIA_MATHKERNEL")
+        return ENV["JULIA_MATHLINK"], ENV["JULIA_MATHKERNEL"]
+    elseif Sys.isapple()
         # we query OS X metadata for possible non-default installations
         # TODO: can use `mdls -raw -name kMDItemVersion $path` to get the version
                 
@@ -46,7 +48,7 @@ function find_lib_ker()
             end
         end
 
-    elseif Sys.is_windows()
+    elseif Sys.iswindows()
         archdir = Sys.ARCH == :x86_64 ? "Windows-x86-64" :
             "Windows"
 
@@ -63,7 +65,7 @@ function find_lib_ker()
         end
     end
 
-    error("Could not find Mathematica or Wolfram Engine installation.")
+    error("Could not find Mathematica or Wolfram Engine installation.\nPlease set the `JULIA_MATHLINK` and `JULIA_MATHKERNEL` variables.")
 end
 
 mlib,mker = find_lib_ker()

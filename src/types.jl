@@ -8,7 +8,7 @@ struct WSymbol
 end
 WSymbol(sym::Symbol) = WSymbol(String(sym))
 Base.print(io::IO, s::WSymbol) = print(io, s.name)
-Base.show(io::IO, s::WSymbol) = print(io, 'w', '"', s.name, '"')
+Base.show(io::IO, s::WSymbol) = print(io, 'W', '"', s.name, '"')
 
 macro W_str(str)
     WSymbol(str)
@@ -40,7 +40,20 @@ function Base.print(io::IO, w::WExpr)
     join(io, w.args, ", ")
     print(io, ']')
 end
-#Base.show(io::IO, w::WExpr) = print(io, "w`", w, "`")
+function Base.show(io::IO, w::WExpr)
+    show(io, w.head)
+    print(io, '(')
+    isfirst = true
+    for arg in w.args
+        if !isfirst
+            print(io, ", ")
+        else
+            isfirst = false
+        end
+        show(io, arg)
+    end
+    print(io, ')')
+end
 
 
 (w::WSymbol)(args...) = WExpr(w, args)

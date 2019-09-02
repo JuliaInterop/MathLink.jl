@@ -1,19 +1,24 @@
 struct MathLinkError <: Exception
+    err::Error
     msg::String
 end
 function MathLinkError(link::Link)
+    err = ccall((:MLError, mlib), Error, (CLink,), link)
     msg = unsafe_string(ccall((:MLErrorMessage, mlib), Cstring, (CLink,), link))
-    ClearError(link)
-    NewPacket(link)
-    MathLinkError(msg)
+    clearerror(link)
+    newpacket(link)
+    MathLinkError(err, msg)
 end
 
-for f in [:Error, :ClearError, :EndPacket, :NewPacket]
-    fstr = string("ML", f)
-    @eval $f(link::Link) = ccall(($fstr, mlib), Cint, (CLink,), link)
-end
+clearerror(link::Link) =
+    ccall((:MLClearError, mlib), Cint, (CLink,), link)
+endpacket(link::Link) =
+    ccall((:MLEndPacket, mlib), Cint, (CLink,), link)
+newpacket(link::Link) =
+    ccall((:MLNewPacket, mlib), Cint, (CLink,), link)
 
-nextpacket(link::Link) = ccall((:MLNextPacket, mlib), Packet, (CLink,), link)
+nextpacket(link::Link) =
+    ccall((:MLNextPacket, mlib), Packet, (CLink,), link)
 
 macro wschk(expr)
     link = expr.args[5] # first argument

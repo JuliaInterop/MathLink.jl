@@ -11,7 +11,7 @@ function handle_packets(link::Link, T)
         elseif pkt == PKT_TEXT
             print(get(link, String))
         elseif pkt == PKT_MESSAGE
-            NewPacket(link)
+            newpacket(link)
             @assert nextpacket(link) == PKT_TEXT
             @warn get(link, String)
         else
@@ -20,12 +20,17 @@ function handle_packets(link::Link, T)
     end
 end
 
-
 function weval(link::Link, T, expr)
     put(link, W"EvaluatePacket"(expr))
-    EndPacket(link)
+    endpacket(link)
     handle_packets(link, T)
 end
+
+"""
+    weval([T,] expr)
+
+Evaluate expression `expr`, returning a value of type `T` (default = `Any`).
+"""
 weval(T, expr) = weval(_defaultlink(), T, expr)
 weval(expr) = weval(Any, expr)
 
@@ -39,8 +44,4 @@ wevalstr(expr) = wevalstr(Any, expr)
 function parseexpr(str::AbstractString)
     r = weval(W"ToExpression"(str, W"InputForm", W"Hold"))
     r.args[1]
-end
-
-macro w_cmd(str)
-    parseexpr(str)
 end
