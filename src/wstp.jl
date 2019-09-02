@@ -1,55 +1,3 @@
-mutable struct Env
-    ptr::Ptr{Cvoid}
-end
-mutable struct Link
-    ptr::Ptr{Cvoid}
-end
-
-const CEnv = Ptr{Cvoid}
-const CLink = Ptr{Cvoid}
-
-Base.cconvert(::Type{CEnv}, env::Env) = env.ptr
-Base.cconvert(::Type{CLink}, link::Link) = link.ptr
-
-function initialize!(env::Env)
-    # MLInitialize
-    ptr = ccall((:MLInitialize, mlib), CEnv, (Cstring,), C_NULL)
-    if ptr == C_NULL
-        error("Could not initialize MathLink library")
-    end
-    env.ptr = ptr
-    return env
-end
-function deinitialize!(env::Env)
-    # void WSDeinitialize(WSENV env)
-    ccall((:MLDeinitialize, mlib), Cvoid, (CEnv,), env)
-    env.ptr = C_NULL
-end
-
-function open!(link::Link, env::Env, args::AbstractString)
-    # MLOpenString
-    # local link
-    err = Ref{Cint}()
-    ptr = ccall((:MLOpenString, mlib), CLink,
-                 (Env, Cstring, Ptr{Cint}),
-                 env, args, err)
-    if err[] != 0
-        error("Could not open MathLink link")
-    end
-    link.ptr = ptr
-    refcount_inc()
-    finalizer(close, defaultlink)
-    return link
-end
-
-function Base.close(link::Link)
-    if link.ptr != C_NULL
-        ccall((:MLClose, mlib), Cvoid, (CLink,), link)
-        link.ptr = C_NULL
-        refcount_dec()
-    end    
-end
-
 struct MathLinkError <: Exception
     msg::String
 end
@@ -66,8 +14,6 @@ for f in [:Error, :ClearError, :EndPacket, :NewPacket]
 end
 
 nextpacket(link::Link) = ccall((:MLNextPacket, mlib), Packet, (CLink,), link)
-
-mlerror(link, name) = error("MathLink Error $(Error(link)) in $name: " * ErrorMessage(link))
 
 macro wschk(expr)
     link = expr.args[5] # first argument

@@ -3,7 +3,8 @@ using Libdl
 function find_lib_ker()
     if Sys.isapple()
         # we query OS X metadata for possible non-default installations
-
+        # TODO: can use `mdls -raw -name kMDItemVersion $path` to get the version
+                
         # Mathematica
         for path in readlines(`mdfind "kMDItemCFBundleIdentifier == 'com.wolfram.Mathematica'"`)
             lib = joinpath(path,"Contents/Frameworks/mathlink.framework/mathlink")

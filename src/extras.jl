@@ -18,7 +18,7 @@ function get(link::Link, ::Type{Any})
     elseif t == TK_SYM
         get(link, WSymbol)
     elseif t == TK_ERROR
-        error("Link has suffered error $(Error(link)): $(ErrorMessage(link))")
+        throw(MathLinkError(link))
     else
         error("Unsupported data type $t ($(Int(t)))")
     end

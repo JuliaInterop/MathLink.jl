@@ -1,16 +1,18 @@
-
 """
     WSymbol
 
+A Wolfram language symbol. The `W""` string macro can be used as a short form.
 """
 struct WSymbol
     name::String
 end
 WSymbol(sym::Symbol) = WSymbol(String(sym))
 Base.print(io::IO, s::WSymbol) = print(io, s.name)
-Base.show(io::IO, s::WSymbol) = print(io, "w`", s, "`")
+Base.show(io::IO, s::WSymbol) = print(io, 'w', '"', s.name, '"')
 
-
+macro W_str(str)
+    WSymbol(str)
+end
 
 struct WReal
     value::String
@@ -22,16 +24,15 @@ struct WInteger
 end
 Base.show(io::IO, x::WInteger) = print(io, x.value)
 
-struct WFunc
-    head::WSymbol
-    nargs::Cint
-end
+"""
+    WExpr
 
+A Wolfram language expression.
+"""
 struct WExpr
     head
-    args::AbstractVector
+    args
 end
-WExpr(sym::Symbol, args...) = WExpr(WSymbol(String(sym)), collect(Any, args))
 
 function Base.print(io::IO, w::WExpr)    
     print(io, w.head)
@@ -39,4 +40,8 @@ function Base.print(io::IO, w::WExpr)
     join(io, w.args, ", ")
     print(io, ']')
 end
-Base.show(io::IO, w::WExpr) = print(io, "w`", w, "`")
+#Base.show(io::IO, w::WExpr) = print(io, "w`", w, "`")
+
+
+(w::WSymbol)(args...) = WExpr(w, args)
+(w::WExpr)(args...) = WExpr(w, args)
