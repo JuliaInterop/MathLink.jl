@@ -1,13 +1,13 @@
 function get(link::Link, ::Type{Any})
     # TODO: handle big integers/floats
-    t = GetNextRaw(link)
+    t = getnextraw(link)
     if t == TK_INT        
         get(link, WInteger)
     elseif t == TK_INT32_LE
         get(link, Int)
     elseif t == TK_INT64_LE
         get(link, Int64)
-    elseif t == TK_FUNC
+    elseif t == TK_FUNC || t == TK_ARRAY
         get(link, WExpr)
     elseif t == TK_STR
         get(link, String)
@@ -32,7 +32,7 @@ function get(link::Link, ::Type{WExpr})
     WExpr(head, args)
 end
 function put(link::Link, w::WExpr)
-    PutType(link, TK_FUNC)
+    puttype(link, TK_FUNC)
     putargcount(link, length(w.args))
     put(link, w.head)
     for arg in w.args

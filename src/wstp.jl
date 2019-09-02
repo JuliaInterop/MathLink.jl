@@ -9,8 +9,8 @@ function MathLinkError(link::Link)
 end
 
 for f in [:Error, :ClearError, :EndPacket, :NewPacket]
-  fstr = string("ML", f)
-  @eval $f(link::Link) = ccall(($fstr, mlib), Cint, (CLink,), link)
+    fstr = string("ML", f)
+    @eval $f(link::Link) = ccall(($fstr, mlib), Cint, (CLink,), link)
 end
 
 nextpacket(link::Link) = ccall((:MLNextPacket, mlib), Packet, (CLink,), link)
@@ -161,18 +161,18 @@ end
 
 
 # Get fns
-GetType(link::Link) =
-  ccall((:MLGetType, mlib), Token, (CLink,), link)
+gettype(link::Link) =
+    ccall((:MLGetType, mlib), Token, (CLink,), link)
 
-GetRawType(link::Link) =
-  ccall((:MLGetRawType, mlib), Token, (CLink,), link)
+getrawtype(link::Link) =
+    ccall((:MLGetRawType, mlib), Token, (CLink,), link)
 
-PutType(link::Link, t::Token) =
+puttype(link::Link, t::Token) =
     @wschk ccall((:MLPutType, mlib), Cint, (CLink, Token), link, t)
 
-GetNext(link::Link) =
-  ccall((:MLGetNext, mlib), Token, (CLink,), link)
+getnext(link::Link) =
+    ccall((:MLGetNext, mlib), Token, (CLink,), link)
 
-GetNextRaw(link::Link) =
-  ccall((:MLGetNextRaw, mlib), Token, (CLink,), link)
+getnextraw(link::Link) =
+    ccall((:MLGetNextRaw, mlib), Token, (CLink,), link)
 
