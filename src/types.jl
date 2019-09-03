@@ -1,92 +1,60 @@
-immutable MExpr{Head}
-  args::Vector
+"""
+    WSymbol
+
+A Wolfram language symbol. The `W""` string macro can be used as a short form.
+"""
+struct WSymbol
+    name::String
 end
-MExpr(head, args...) = MExpr{head}([args...])
+WSymbol(sym::Symbol) = WSymbol(String(sym))
+Base.print(io::IO, s::WSymbol) = print(io, s.name)
+Base.show(io::IO, s::WSymbol) = print(io, 'W', '"', s.name, '"')
 
-import Base.show
-
-function show{T}(io::IO, e::MExpr{T})
-  print(io, T)
-  if length(e.args) >= 1
-    print(io, "["); show(io, e.args[1])
-    for x in e.args[2:end] print(io, ", "); show(io, x) end
-    print(io, "]")
-  else
-    print(io, "[]")
-  end
+macro W_str(str)
+    WSymbol(str)
 end
 
-show(io::IO, r::MExpr{:Rule}) =
-  (show(io, r.args[1]); print(io, "→"); show(io, r.args[2]))
+struct WReal
+    value::String
+end
+Base.show(io::IO, x::WReal) = print(io, x.value)
 
-# Conversion
+struct WInteger
+    value::String
+end
+Base.show(io::IO, x::WInteger) = print(io, x.value)
 
-const aliases =
-  Dict(:*   => :Times,
-       :/   => :Divide,
-       :^   => :Power,
-       :+   => :Plus,
-       :-   => :Subtract,
-       :%   => :Mod,
-       :log => :Log,
-       :exp => :Exp,
-       :sin => :Sin,
-       :cos => :Cos,
-       :tan => :Tan)
+"""
+    WExpr
 
-from_mma(x) = x
-const symbols = Dict(:True => true, :False => false, :Null => nothing)
-from_mma(s::Symbol) = haskey(symbols, s) ? symbols[s] : s
-
-to_mma{T<:Union{Int64,Int32,Float64,Float32,Symbol,AbstractString}}(x::T) = x
-
-function to_mma(x::Expr)
-  if x.head == :call
-    head = haskey(aliases, x.args[1]) ? aliases[x.args[1]] : x.args[1]
-    MExpr{head}(map(to_mma, x.args[2:end]))
-  elseif x.head == :block
-    MExpr{:CompoundExpression}(map(to_mma, x.args))
-  elseif x.head == :ref
-    MExpr{:Part}(map(to_mma, x.args))
-  elseif x.head == :cell1d
-    MExpr{:List}(x.args)
-  else
-    error("Unsupported $(x.head) expression.")
-  end
+A Wolfram language expression.
+"""
+struct WExpr
+    head
+    args
 end
 
-function to_mma(x::QuoteNode)
-  typeof(x.value) == Symbol && return x.value
-  error("Cannot call to_mma on QuoteNode($(x.value))")
+function Base.print(io::IO, w::WExpr)    
+    print(io, w.head)
+    print(io, '[')
+    join(io, w.args, ", ")
+    print(io, ']')
+end
+function Base.show(io::IO, w::WExpr)
+    show(io, w.head)
+    print(io, '(')
+    isfirst = true
+    for arg in w.args
+        if !isfirst
+            print(io, ", ")
+        else
+            isfirst = false
+        end
+        show(io, arg)
+    end
+    print(io, ')')
 end
 
-# Other types
 
-to_mma(x::Bool) = x ? :True : :False
-
-to_mma{T}(x::MExpr{T}) = MExpr{T}(map(to_mma, x.args))
-from_mma{T}(x::MExpr{T}) = MExpr{T}(map(from_mma, x.args))
-
-to_mma(x::Rational) = MExpr(:Rational, x.num, x.den)
-from_mma(f::MExpr{:Rational}) = f.args[1]//f.args[2]
-
-to_mma(x::Complex) = MExpr(:Complex, to_mma(real(x)), to_mma(imag(x)))
-from_mma(x::MExpr{:Complex}) = Complex(x.args[1], x.args[2])
-
-to_mma(xs::Vector) = MExpr{:List}(map(to_mma, xs))
-from_mma(l::MExpr{:List}) = map(from_mma, l.args)
-
-# Julia Expression Conversion
-
-to_expr(x) = x
-to_expr{T}(x::MExpr{T}) = Expr(:call, T, map(to_expr, x.args)...)
-
-for (j, m) in aliases
-  j = Expr(:quote, j)
-  m = Expr(:quote, m)
-  @eval to_expr(x::MExpr{$m}) = Expr(:call, $j, map(to_expr,x.args)...)
-end
-
-import Base.convert
-convert(::Type{Expr}, x::MExpr) = to_expr(from_mma(x))
-convert(::Type{MExpr}, x::Expr) = to_mma(x)
+(w::WSymbol)(args...) = WExpr(w, args)
+(w::WExpr)(args...) = WExpr(w, args)
