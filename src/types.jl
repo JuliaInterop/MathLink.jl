@@ -34,12 +34,6 @@ struct WExpr
     args
 end
 
-function Base.print(io::IO, w::WExpr)    
-    print(io, w.head)
-    print(io, '[')
-    join(io, w.args, ", ")
-    print(io, ']')
-end
 function Base.show(io::IO, w::WExpr)
     show(io, w.head)
     print(io, '(')
