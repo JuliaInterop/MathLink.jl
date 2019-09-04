@@ -45,3 +45,7 @@ function parseexpr(str::AbstractString)
     r = weval(W"ToExpression"(str, W"InputForm", W"Hold"))
     r.args[1]
 end
+
+macro W_cmd(str)
+    parseexpr(str)
+end

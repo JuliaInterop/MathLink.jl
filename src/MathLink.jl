@@ -1,6 +1,6 @@
 module MathLink
 
-export @W_str, weval
+export @W_str, @W_cmd, weval
 
 include("../deps/deps.jl")
 include("types.jl")
