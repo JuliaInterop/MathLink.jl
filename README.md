@@ -5,8 +5,11 @@ This package provides access to Mathematica/Wolfram Engine via the MathLink libr
 ## Installation
 
 The package requires a [Mathematica](http://www.wolfram.com/mathematica/) or [Wolfram Engine](https://www.wolfram.com/engine/) installation. It will attempt to find the installation at build time; if this fails, you will need to set the following environment variables:
-- `JULIA_MATHLINK`: the path of the MathLink dynamic library
 - `JULIA_MATHKERNEL`: the path of the MathKernel executable
+- `JULIA_MATHLINK`: the path of the MathLink dynamic library named
+  - `libML64i4.so`/ `libML32i4.so` on Linux
+  - `libML64.dll`/ `libML32.dll` on Windows
+  - `mathlink` on macOS
 
 ## Usage
 
