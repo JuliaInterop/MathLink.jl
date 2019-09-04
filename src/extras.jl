@@ -69,3 +69,10 @@ end
 function get(link::Link, ::Type{BigInt})
     parse(BigInt, get(link, WInteger).value)
 end
+
+
+put(link::Link, ::typeof(pi)) = put(link, W"Pi")
+put(link::Link, ::typeof(MathConstants.e)) = put(link, W"E")
+put(link::Link, ::typeof(MathConstants.golden)) = put(link, W"GoldenRatio")
+put(link::Link, ::typeof(MathConstants.eulergamma)) = put(link, W"EulerGamma ")
+put(link::Link, ::typeof(MathConstants.catalan)) = put(link, W"Catalan ")
