@@ -1,6 +1,6 @@
 # MathLink.jl
 
-This package provides access to Mathematica/Wolfram Engine via the *MathLink* library (now renamed to WSTP).
+This package provides access to Mathematica/Wolfram Engine via the MathLink library, now renamed to [Wolfram Symbolic Transfer Protocol (WSTP)](https://www.wolfram.com/wstp/). 
 
 ## Installation
 
@@ -36,3 +36,7 @@ W"Sin"(W"x")
 julia> weval(W"Integrate"(sinx, (W"x", 0, 1)))
 W"Plus"(1, W"Times"(-1, W"Cos"(1)))
 ```
+
+## Notes
+
+- Mathematica, Wolfram, MathLink are all trademarks of Wolfram Research.
