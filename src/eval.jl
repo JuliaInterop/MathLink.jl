@@ -42,6 +42,10 @@ wevalstr(T, expr) = wevalstr(_defaultlink(), T, expr)
 wevalstr(expr) = wevalstr(Any, expr)
 
 function parseexpr(str::AbstractString)
-    r = weval(W"ToExpression"(str, W"InputForm", W"Hold"))
+    r = weval(W"ToExpression"(str, W"StandardForm", W"Hold"))
     r.args[1]
+end
+
+macro W_cmd(str)
+    parseexpr(str)
 end
