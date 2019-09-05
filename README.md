@@ -15,7 +15,7 @@ The package requires a [Mathematica](http://www.wolfram.com/mathematica/) or [Wo
 
 The main interface consists of the `W""` string macro for specifying symbols. These are call-overloaded for building more complicated expressions 
 
-```
+```julia
 julia> using MathLink
 
 julia> W"Sin"
@@ -29,13 +29,13 @@ W"Sin"(W"x")
 ```
 
 To parse an expression in the Wolfram Language, you can use the `W` cmd macro (note the backticks):
-```
+```julia
 julia> W`Sin[1]`
 W"Sin"(1)
 ```
 
 `weval` evaluates an expression:
-```
+```julia
 julia> weval(sin1)
 0.8414709848078965
 
