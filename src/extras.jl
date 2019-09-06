@@ -66,10 +66,28 @@ function get(link::Link, ::Type{Vector})
     [get(link, Any) for i = 1:nargs]
 end
 
+function put(link::Link, w::WInteger)
+    puttype(link, TK_INT)
+    put(link, w.value)
+end
+function put(link::Link, x::BigInt)
+    put(link, WInteger(string(x)))
+end
 function get(link::Link, ::Type{BigInt})
     parse(BigInt, get(link, WInteger).value)
 end
 
+
+const log10_2 = log10(2)
+function put(link::Link, x::BigFloat)
+    str = Base.MPFR.string_mpfr(x,"%.Re")
+    str = replace(str, "e" => "`$(log10_2*precision(x))*^")
+    put(link, WReal(str))
+end
+function get(link::Link, ::Type{BigFloat})
+    str = get(link, WReal).value
+    BigFloat(replace(replace(str, r"`[0-9\.]*"=>""), "*^"=>"e"))
+end
 
 put(link::Link, ::typeof(pi)) = put(link, W"Pi")
 put(link::Link, ::typeof(MathConstants.e)) = put(link, W"E")

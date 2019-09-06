@@ -1,5 +1,7 @@
 module MathLink
 
+using Printf
+
 export @W_str, @W_cmd, weval
 
 include("../deps/deps.jl")
