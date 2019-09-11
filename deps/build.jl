@@ -32,22 +32,35 @@ function find_lib_ker()
                   Sys.ARCH == :x86_64 ? "Linux-x86-64" :
                                         "Linux"
 
-        # alternatively, "math" or "wolfram" is often in PATH, so could use
-        # echo \$InstallationDirectory | math | sed -n -e 's/Out\[1\]= //p'
-
-        for mpath in ["/usr/local/Wolfram/Mathematica","/opt/Wolfram/WolframEngine"]
-            if isdir(mpath)
-                vers = readdir(mpath)
-                ver = vers[argmax(map(VersionNumber,vers))]
-
-                lib = Libdl.find_library(
-                    ["libML$(Sys.WORD_SIZE)i4","libML$(Sys.WORD_SIZE)i3"],
-                    [joinpath(mpath,ver,"SystemFiles/Links/MathLink/DeveloperKit",archdir,"CompilerAdditions")])
-                ker = joinpath(mpath,ver,"Executables/MathKernel")
-                return lib, ker
+        ker = get(ENV,"JULIA_MATHKERNEL") do
+            for kername in ["WolframKernel", "MathKernel", "wolfram", "math"]
+                if Sys.isexecutable(Sys.which(kername))
+                    return kername
+                end
             end
+
+            for mpath in ["/usr/local/Wolfram/Mathematica","/opt/Wolfram/WolframEngine"]
+                if isdir(mpath)
+                    vers = readdir(mpath)
+                    ver = vers[argmax(map(VersionNumber,vers))]
+                    for kername in ["WolframKernel", "MathKernel", "wolfram", "math"]
+                        fullkername = joinpath(mpath,ver,"Executables",kername)
+                        if Sys.isexecutable(fullkername)
+                            return fullkername
+                        end
+                    end
+                end
+            end
+            error("Could not find Wolfram engine kernel")
         end
 
+        basepath = String(read(pipeline(`printf "WriteString[\$Output,\$InstallationDirectory]"`, `$ker -noprompt`)))
+
+        lib = Libdl.find_library(
+            ["libML$(Sys.WORD_SIZE)i4","libML$(Sys.WORD_SIZE)i3"],
+            [joinpath(basepath,"SystemFiles/Links/MathLink/DeveloperKit",archdir,"CompilerAdditions")])
+
+        return lib, ker
     elseif Sys.iswindows()
         archdir = Sys.ARCH == :x86_64 ? "Windows-x86-64" :
             "Windows"

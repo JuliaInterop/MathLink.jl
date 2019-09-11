@@ -1,17 +1,30 @@
-language: cpp
-compiler:
-  - clang
+language: julia
+os:
+  - linux
+julia:
+  - 1.0
+  - 1.1
+  - 1.2
+  - nightly
+
+branches:
+  only:
+    - master
+    - /release-.*/
+
+matrix:
+  allow_failures:
+    - julia: nightly
+
 notifications:
   email: false
-env:
-  matrix:
-    - JULIAVERSION="juliareleases"
-    - JULIAVERSION="julianightlies"
+
 before_install:
-  - sudo add-apt-repository ppa:staticfloat/julia-deps -y
-  - sudo add-apt-repository ppa:staticfloat/${JULIAVERSION} -y
-  - sudo apt-get update -qq -y
-  - sudo apt-get install libpcre3-dev julia -y
-  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-script:
-  - julia -e 'Pkg.init(); Pkg.clone(pwd()); Pkg.test("MathLink")'
+  # download and install Wolfram Engine
+  - wget -O WolframEngine.sh https://account.wolfram.com/download/public/wolfram-engine/desktop/LINUX
+  - printf "\n\n" | sudo bash WolframEngine.sh
+  # information
+  - WolframKernel -version
+  - WolframKernel -machineid
+  # activate
+  - printf '\n1001-1010-456789\n2039-378-645:8::20200630\n' | WolframKernel
