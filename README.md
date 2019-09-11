@@ -1,5 +1,7 @@
 # MathLink.jl
 
+[![Build Status](https://travis-ci.org/JuliaInterop/MathLink.jl.svg?branch=master)](https://travis-ci.org/JuliaInterop/MathLink.jl)
+
 This package provides access to Mathematica/Wolfram Engine via the MathLink library, now renamed to [Wolfram Symbolic Transfer Protocol (WSTP)](https://www.wolfram.com/wstp/). 
 
 ## Installation
