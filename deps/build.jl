@@ -71,7 +71,7 @@ function find_lib_ker()
             vers = readdir(mpath)
             ver = vers[argmax(map(VersionNumber,vers))]
             lib = Libdl.find_library(
-                ["libML$(Sys.WORD_SIZE)i4","libML$(Sys.WORD_SIZE)i3"],
+                ["ml$(Sys.WORD_SIZE)i4.dll", "libML$(Sys.WORD_SIZE)i4","libML$(Sys.WORD_SIZE)i3"],
                 [joinpath(mpath,ver,"SystemFiles\\Links\\MathLink\\DeveloperKit",archdir,"SystemAdditions")])
             ker = joinpath(mpath,ver,"math.exe")
             return lib, ker
