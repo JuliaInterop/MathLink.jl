@@ -12,5 +12,6 @@ include("link.jl")
 include("wstp.jl")
 include("extras.jl")
 include("eval.jl")
+include("display.jl")
 
 end
