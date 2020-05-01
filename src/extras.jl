@@ -3,6 +3,8 @@ function get(link::Link, ::Type{Any})
     t = getnextraw(link)
     if t == TK_INT        
         get(link, WInteger)
+    elseif t == TK_UINT8
+        get(link, UInt8)
     elseif t == TK_INT32_LE
         get(link, Int)
     elseif t == TK_INT64_LE
@@ -20,6 +22,7 @@ function get(link::Link, ::Type{Any})
     elseif t == TK_ERROR
         throw(MathLinkError(link))
     else
+        # TODO: if we end up here then need to fix link
         error("Unsupported data type $t ($(Int(t)))")
     end
 end
@@ -65,6 +68,9 @@ function get(link::Link, ::Type{Vector})
     _ = get(link, Any)
     [get(link, Any) for i = 1:nargs]
 end
+
+get(link, ::Type{UInt8}) = get(link, Int8)
+
 
 function put(link::Link, w::WInteger)
     puttype(link, TK_INT)
