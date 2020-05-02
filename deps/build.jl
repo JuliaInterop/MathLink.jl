@@ -65,16 +65,20 @@ function find_lib_ker()
         archdir = Sys.ARCH == :x86_64 ? "Windows-x86-64" :
             "Windows"
 
-        #TODO: query Windows Registry, see RCall.jl
-        mpath = "C:\\Program Files\\Wolfram Research\\Mathematica"
-        if isdir(mpath)
-            vers = readdir(mpath)
-            ver = vers[argmax(map(VersionNumber,vers))]
-            lib = Libdl.find_library(
-                ["ml$(Sys.WORD_SIZE)i4.dll", "libML$(Sys.WORD_SIZE)i4","libML$(Sys.WORD_SIZE)i3"],
-                [joinpath(mpath,ver,"SystemFiles\\Links\\MathLink\\DeveloperKit",archdir,"SystemAdditions")])
-            ker = joinpath(mpath,ver,"math.exe")
-            return lib, ker
+        # TODO: query Windows Registry, see RCall.jl
+        # it looks like it registers stuff in
+        # HKEY_LOCAL_MACHINE\SOFTWARE\Wolfram Research\Installations\
+        # but not clear how it is organized
+        for mpath in ["C:\\Program Files\\Wolfram Research\\Mathematica", "C:\\Program Files\\Wolfram Research\\Wolfram Engine"]
+            if isdir(mpath)
+                vers = readdir(mpath)
+                ver = vers[argmax(map(VersionNumber,vers))]
+                lib = Libdl.find_library(
+                    ["ml$(Sys.WORD_SIZE)i4.dll", "libML$(Sys.WORD_SIZE)i4", "ml$(Sys.WORD_SIZE)i3.dll", "libML$(Sys.WORD_SIZE)i3"],
+                    [joinpath(mpath,ver,"SystemFiles\\Links\\MathLink\\DeveloperKit",archdir,"SystemAdditions")])
+                ker = joinpath(mpath,ver,"math.exe")
+                return lib, ker
+            end
         end
     end
 
