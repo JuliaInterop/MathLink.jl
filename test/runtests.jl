@@ -8,6 +8,7 @@ import MathLink: WExpr, WSymbol
     @test_throws MathLink.MathLinkError weval(Int, w)
     @test weval(BigInt, w) == factorial(big(30))
     @test weval(W"Factorial"(20)) === factorial(20)
+    @test weval(W`Factorial[x]`; x=20) === factorial(20)
 
     @test weval(Float64, W"N"(W"Log"(factorial(big(30))),100)) == log(Float64(factorial(big(30))))
     @test weval(BigFloat, W"N"(W"Log"(factorial(big(30))),100)) == log(factorial(big(30)))
