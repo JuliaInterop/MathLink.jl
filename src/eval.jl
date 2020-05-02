@@ -20,19 +20,37 @@ function handle_packets(link::Link, T)
     end
 end
 
-function weval(link::Link, T, expr)
+function weval(link::Link, T, expr; vars...)
+    if !isempty(vars)
+        expr = W"With"([W"Set"(WSymbol(k), v) for (k,v) in vars], expr)
+    end
     put(link, W"EvaluatePacket"(expr))
     endpacket(link)
     handle_packets(link, T)
 end
 
 """
-    weval([T,] expr)
+    weval([T,] expr; vars...)
 
 Evaluate expression `expr`, returning a value of type `T` (default = `Any`).
+
+If keyword arguments `vars` are provided, then `expr` is wrapped by a
+[`With`](https://reference.wolfram.com/language/ref/With.html) block with `vars` assigned
+as local constants.
+
+```
+julia> weval(W`Sin[x+2]`)
+W"Sin"(W"Plus"(2, W"x"))
+
+julia> weval(W`Sin[x+2]`; x=3)
+W"Sin"(5)
+
+julia> weval(W`Sin[x+2]`; x=3.0)
+-0.9589242746631385
+```
 """
-weval(T, expr) = weval(_defaultlink(), T, expr)
-weval(expr) = weval(Any, expr)
+weval(T, expr; vars...) = weval(_defaultlink(), T, expr; vars...)
+weval(expr; vars...) = weval(Any, expr; vars...)
 
 
 function wevalstr(link, T, str::AbstractString)

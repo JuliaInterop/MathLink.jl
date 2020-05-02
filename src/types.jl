@@ -1,7 +1,32 @@
 """
-    WSymbol
+    WSymbol(name::Union{String, Symbol})
+    W"..."
 
 A Wolfram language symbol. The `W""` string macro can be used as a short form.
+
+A `WSymbol` object is callable, which can be used to construct [`WExpr`](@ref)s (but doesn't evaluate it):
+```julia
+julia> W"Sin"
+W"Sin"
+
+julia> W"Sin"(1.0)
+W"Sin"(1.0)
+
+julia> weval(W"Sin"(1.0))
+0.8414709848078965
+```
+
+Keyword arguments are passed as options:
+```julia
+julia> ex = W`Sqrt[x^2]`
+W"Sqrt"(W"Power"(W"x", 2))
+
+julia> assume = W`x<0`
+W"Less"(W"x", 0)
+
+julia> weval(W"Simplify"(ex, Assumptions=assume))
+W"Times"(-1, W"x")
+```
 """
 struct WSymbol
     name::String
@@ -14,20 +39,41 @@ macro W_str(str)
     WSymbol(str)
 end
 
+"""
+    WReal(str::String)
+
+A Wolfram arbitrary-precision real number.
+"""
 struct WReal
     value::String
 end
 Base.show(io::IO, x::WReal) = print(io, x.value)
 
+"""
+    WReal(str::String)
+
+A Wolfram arbitrary-precision integer.
+"""
 struct WInteger
     value::String
 end
 Base.show(io::IO, x::WInteger) = print(io, x.value)
 
 """
-    WExpr
+    WExpr(head, args)
 
-A Wolfram language expression.
+A Wolfram language expression. Like [`WSymbol`](@ref) it is callable to construct more complicated expressions.
+
+```julia
+julia> W`Function[x,x+1]`
+W"Function"(W"x", W"Plus"(W"x", 1))
+
+julia> W`Function[x,x+1]`(2)
+W"Function"(W"x", W"Plus"(W"x", 1))(2)
+
+julia> weval(W`Function[x,x+1]`(2))
+3
+```
 """
 struct WExpr
     head
@@ -50,5 +96,15 @@ function Base.show(io::IO, w::WExpr)
 end
 
 
-(w::WSymbol)(args...) = WExpr(w, args)
-(w::WExpr)(args...) = WExpr(w, args)
+function (w::WSymbol)(args...; kwargs...)
+    if !isempty(kwargs)
+        args = [args..., [W"Rule"(WSymbol(k), v) for (k,v) in kwargs]...]
+    end
+    WExpr(w, args)
+end
+function (w::WExpr)(args...; kwargs...)
+    if !isempty(kwargs)
+        args = [args..., [W"Rule"(WSymbol(k), v) for (k,v) in kwargs]...]
+    end
+    WExpr(w, args)
+end
