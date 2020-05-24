@@ -2,7 +2,7 @@ module MathLink
 
 using Printf
 
-export @W_str, @W_cmd, weval
+export @W_str, @W_cmd, warray, weval
 
 include("../deps/deps.jl")
 include("types.jl")
@@ -12,6 +12,7 @@ include("link.jl")
 include("wstp.jl")
 include("extras.jl")
 include("eval.jl")
+include("array.jl")
 include("display.jl")
 
 end
