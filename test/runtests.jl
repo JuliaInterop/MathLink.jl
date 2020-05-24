@@ -37,3 +37,11 @@ end
 
     @test weval(W`Integrate[Log[x], {x,1,E}]`) == 1
 end
+
+@testset "warray" begin
+    w = Array{Any,3}(undef, 2,1,3)
+    w[1,:,:] .= [1 2.0 W"Sin"(W"a")]
+    w[2,:,:] .= [W"Factorial"(20) W"Cos"(-1.0) -3]
+    r = W"Equal"(warray(w),W`{{{1,2.0,Sin[a]}},{{Factorial[20],Cos[-1.0],-3}}}`)
+    @test weval(r).name == "True"
+end
