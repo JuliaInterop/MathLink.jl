@@ -1,7 +1,7 @@
 function get(link::Link, ::Type{Any})
     # TODO: handle big integers/floats
     t = getnextraw(link)
-    if t == TK_INT        
+    if t == TK_INT
         get(link, WInteger)
     elseif t == TK_UINT8
         get(link, UInt8)
@@ -48,8 +48,16 @@ function put(link::Link, list::Union{AbstractVector, Tuple})
     putfunction(link, WSymbol("List"), length(list))
     for x in list
         put(link, x)
-    end    
+    end
 end
+
+function put(link::Link, arr::AbstractArray{T,N}) where {T,N}
+    putfunction(link, WSymbol("List"), size(arr,1))
+    for i in axes(arr,1)
+        put(link, view(arr, i, ntuple(_->:,N-1)...))
+    end
+end
+
 
 function get(link::Link, ::Type{T}) where {T<:Tuple}
     F = fieldtypes(T)

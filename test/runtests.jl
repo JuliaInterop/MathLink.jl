@@ -37,3 +37,23 @@ end
 
     @test weval(W`Integrate[Log[x], {x,1,E}]`) == 1
 end
+
+@testset "comparisons" begin
+    @test W"Sin"(1) == W"Sin"(1)
+    @test W`Sin[1]` == W`Sin[1]`
+    @test W`Sin[1]` == W"Sin"(1)
+
+    @test W"Sin"(1) != W"Sin"(2)
+    @test W`Sin[1]` != W`Sin[2]`
+    @test W`Sin[1]` != W"Sin"(2)
+
+    @test W"Sin"(1) != W"Sin"(1,1)
+end
+
+@testset "arrays" begin
+    X = 1:10
+    @test weval(W"Total"(X)) == sum(X)
+
+    A = [1 2 3; 4 5 6]; x = [1,3,7];
+    @test weval(W"Dot"(A,x)) == WExpr(W"List",A*x)
+end
