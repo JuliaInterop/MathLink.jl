@@ -34,6 +34,7 @@ end
 WSymbol(sym::Symbol) = WSymbol(String(sym))
 Base.print(io::IO, s::WSymbol) = print(io, s.name)
 Base.show(io::IO, s::WSymbol) = print(io, 'W', '"', s.name, '"')
+Base.:(==)(a::WSymbol, b::WSymbol) = a.name == b.name
 
 macro W_str(str)
     WSymbol(str)
@@ -48,9 +49,10 @@ struct WReal
     value::String
 end
 Base.show(io::IO, x::WReal) = print(io, x.value)
+Base.:(==)(a::WReal, b::WReal) = a.value == b.value
 
 """
-    WReal(str::String)
+    WInteger(str::String)
 
 A Wolfram arbitrary-precision integer.
 """
@@ -58,6 +60,7 @@ struct WInteger
     value::String
 end
 Base.show(io::IO, x::WInteger) = print(io, x.value)
+Base.:(==)(a::WInteger, b::WInteger) = a.value == b.value
 
 """
     WExpr(head, args)
@@ -78,6 +81,14 @@ julia> weval(W`Function[x,x+1]`(2))
 struct WExpr
     head
     args
+end
+function Base.:(==)(a::WExpr, b::WExpr)
+    a.head == b.head || return false
+    length(a.args) == length(b.args) || return false
+    for (aa,bb) in zip(a.args, b.args)
+        aa == bb || return false
+    end
+    return true
 end
 
 function Base.show(io::IO, w::WExpr)
