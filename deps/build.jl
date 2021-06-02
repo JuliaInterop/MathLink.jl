@@ -17,7 +17,7 @@ function find_lib_ker()
         end
 
         # Wolfram Engine
-        for path in readlines(`mdfind "kMDItemCFBundleIdentifier == 'com.wolfram.engine'"`)
+        for path in readlines(`mdfind "kMDItemCFBundleIdentifier == 'com.wolfram.*'"`)
             # kernels are located in sub-application
             subpath = joinpath(path, "Contents/Resources/Wolfram Player.app")
             lib = joinpath(subpath,"Contents/Frameworks/mathlink.framework/mathlink")
