@@ -23,7 +23,7 @@ julia> W"Sin"
 W"Sin"
 
 julia> sin1 = W"Sin"(1.0)
-W"Sin(1.0)"
+W"Sin"(1.0)
 
 julia> sinx = W"Sin"(W"x")
 W"Sin"(W"x")
