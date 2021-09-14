@@ -10,7 +10,7 @@ The package requires an installation of either [Mathematica](http://www.wolfram.
 - `JULIA_MATHKERNEL`: the path of the MathKernel executable
 - `JULIA_MATHLINK`: the path of the MathLink dynamic library named
   - `libML64i4.so`/ `libML32i4.so` on Linux
-  - `libML64.dll`/ `libML32.dll` on Windows
+  - `ml64i4.dll`/`ml32i4.dll`/`libML64.dll`/ `libML32.dll` on Windows
   
 ## Usage
 
