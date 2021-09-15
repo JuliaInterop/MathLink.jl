@@ -91,6 +91,14 @@ function get(link::Link, ::Type{BigInt})
     parse(BigInt, get(link, WInteger).value)
 end
 
+function put(link::Link, x::Int128) 
+    put(link, WInteger(string(x))) 
+end 
+function get(link::Link, ::Type{Int128}) 
+    parse(Int128, get(link, WInteger).value) 
+end 
+
+
 
 const log10_2 = log10(2)
 function put(link::Link, x::BigFloat)
