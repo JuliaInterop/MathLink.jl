@@ -36,13 +36,24 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
             ${{ runner.os }}-
-      - name: Download and install Wolfram Engine
+  
+  
+      - name: Cache Wolfram Engine installer
+        id: cache-wolfram
+        uses: actions/cache@v2
+        with:
+          path: WolframEngine.sh
+          key: ${{ runner.os }}-wolfram-installer
+      - name: Download Wolfram Engine installer
+        if: steps.cache-wolfram.outputs.cache-hit != 'true'
+        run: wget -O WolframEngine.sh https://account.wolfram.com/download/public/wolfram-engine/desktop/LINUX
+      - name: Install Wolfram Engine
         run: |
-          wget -O WolframEngine.sh https://account.wolfram.com/download/public/wolfram-engine/desktop/LINUX
           printf "\n\n" | sudo bash WolframEngine.sh
           WolframKernel -version
           WolframKernel -machineid
-          printf '\n1001-1010-456789\n8630-177-116:::20210630\n' | WolframKernel
+          printf '\n1001-1010-456789\n5874-162-609:::20220915\n' | WolframKernel
+
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
