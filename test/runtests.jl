@@ -14,6 +14,16 @@ import MathLink: WExpr, WSymbol
     @test weval(BigFloat, W"N"(W"Log"(factorial(big(30))),100)) == log(factorial(big(30)))
 end
 
+@testset "Int128" begin
+    ###
+    A=Int128(294857324952348732)
+    B=Int128(234424444352343456)
+    @test typeof(weval(A)) == Int64
+    @test typeof(weval(B)) == Int64
+    @test typeof(weval(A*B)) == MathLink.WInteger
+    @test weval(A*B).value == "$(A*B)"
+end
+
 @testset "floats" begin
     w = W"Sqrt"(2.0)
     @test weval(w) == sqrt(2.0)
