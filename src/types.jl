@@ -30,6 +30,11 @@ W"Times"(-1, W"x")
 """
 struct WSymbol
     name::String
+    function WSymbol(name::String)
+        '_' in name && error("Symbol name contains '_'")
+        isdigit(first(name)) && error("Symbol name starts with a number")
+        new(name)
+    end
 end
 WSymbol(sym::Symbol) = WSymbol(String(sym))
 Base.print(io::IO, s::WSymbol) = print(io, s.name)
