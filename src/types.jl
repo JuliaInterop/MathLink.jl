@@ -37,7 +37,7 @@ Base.show(io::IO, s::WSymbol) = print(io, 'W', '"', s.name, '"')
 Base.:(==)(a::WSymbol, b::WSymbol) = a.name == b.name
 
 macro W_str(str)
-    WSymbol(str)
+    quote WSymbol($(esc(Meta.parse("\"$(escape_string(str))\"")))) end
 end
 
 """
