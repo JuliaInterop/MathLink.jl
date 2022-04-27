@@ -67,3 +67,10 @@ end
     A = [1 2 3; 4 5 6]; x = [1,3,7];
     @test weval(W"Dot"(A,x)) == WExpr(W"List",A*x)
 end
+
+@testset "interpolation" begin
+    x = exp(1)
+    @test W`Sin[$x]` == W"Sin"(x)
+
+    @test W`Cos[$(log(2))]` == W"Cos"(log(2))
+end

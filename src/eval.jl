@@ -65,5 +65,5 @@ function parseexpr(str::AbstractString)
 end
 
 macro W_cmd(str)
-    parseexpr(str)
+    quote parseexpr($(esc(Meta.parse("\"$(escape_string(str))\"")))) end
 end
