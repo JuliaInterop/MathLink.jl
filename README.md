@@ -11,6 +11,11 @@ The package requires an installation of either [Mathematica](http://www.wolfram.
 - `JULIA_MATHLINK`: the path of the MathLink dynamic library named
   - `libML64i4.so`/ `libML32i4.so` on Linux
   - `ml64i4.dll`/`ml32i4.dll`/`libML64.dll`/ `libML32.dll` on Windows
+
+After setting you may need to manually build the package
+```julia
+(@v1.X) pkg> build MathLink
+```
   
 ## Usage
 
