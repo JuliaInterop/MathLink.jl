@@ -35,10 +35,16 @@ function refcount_dec()
 end
 
 function __init__()
-    # WSENV WSInitialize(WSEnvironmentParameter p) 
-    env.ptr = ccall((:MLInitialize, mlib), CEnv, (Ptr{Cvoid},), C_NULL)
-    if env.ptr == C_NULL
-        error("Could not initialize MathLink library")
+    if mlib == "" ###when JULIA_REGISTRYCI_AUTOMERGE=true the mlib is an empty string, and we can test for that
+        # We need to be able to install and load this package without error for
+        # Julia's registry AutoMerge to work. Skip initialization of the mathlink library.
+        @info "Pretending fake installation works"
+    else
+        # WSENV WSInitialize(WSEnvironmentParameter p) 
+        env.ptr = ccall((:MLInitialize, mlib), CEnv, (Ptr{Cvoid},), C_NULL)
+        if env.ptr == C_NULL
+            error("Could not initialize MathLink library")
+        end
+        atexit(refcount_dec)
     end
-    atexit(refcount_dec)
 end
