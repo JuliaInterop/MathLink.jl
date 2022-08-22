@@ -13,5 +13,6 @@ include("wstp.jl")
 include("extras.jl")
 include("eval.jl")
 include("display.jl")
+include("list2array.jl")
 
 end
