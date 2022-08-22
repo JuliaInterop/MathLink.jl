@@ -2,7 +2,7 @@ module MathLink
 
 using Printf
 
-export @W_str, @W_cmd, weval
+export @W_str, @W_cmd, weval, mma_list2array
 
 include("../deps/deps.jl")
 include("types.jl")
