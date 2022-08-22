@@ -1,13 +1,13 @@
 name = "MathLink"
 uuid = "18c93696-a329-5786-9845-8443133fa0b4"
-version = "0.3.2"
-
-[compat]
-julia = "1"
+version = "0.4.0"
 
 [deps]
 Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+
+[compat]
+julia = "1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
