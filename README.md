@@ -58,6 +58,80 @@ julia> weval(sinx; x=2.0)
 0.9092974268256817
 ```
 
+## The algebraic operators
+
+MathLink also overloads the `+`, `-`, `*`, `/`  operations
+
+```julia
+julia> using MathLink
+
+julia> W"a"+W"b"
+W"Plus"(W"a",W"b")
+
+julia> W"a"+W"a"
+W"Plus"(W"a",W"a")
+
+julia> W"a"-W"a"
+W"Plus"(W"a",W"Minus"(W"a"))
+```
+
+One can toggle automatic use of `weval`  on-and-off using `set_GreedyEval(x::Bool)`
+
+```julia
+julia>set_GreedyEval(true)
+julia> W"a"+W"b"
+W"Plus"(W"a",W"b")
+
+julia> W"a"+W"a"
+W"Times"(2,W"a")
+
+julia> W"a"-W"a"
+0
+```
+
+
+## Fractions and Complex numbers
+ 
+The package also contains extentions to handle fractions
+
+```julia
+julia> weval(1//2)
+W"Rational"(1, 2)
+
+julia> (4//5)*W"a"
+W"Times"(W"Rational"(4, 5), W"a")
+
+julia> W"a"/(4//5)
+W"Times"(W"Rational"(5, 4), W"a")
+```
+
+and complex numbers
+
+```julia
+julia> im*W"a"
+W"Times"(W"Complex"(0, 1), W"a")
+
+julia> im*(im*W"c")
+W"Times"(-1, W"c")
+```
+
+
+## Matrix Multiplication
+Since the arithematic operators are overloaded, operations such as matrix multiplication are also possible by default
+
+```julia
+julia> P12 = [ 0 1 ; 1 0 ]
+2×2 Matrix{Int64}:
+ 0  1
+ 1  0
+
+julia> set_GreedyEval(true)
+true
+
+julia> P12 * [W"a" W"b" ; W`a+b` 2] == [ W"b" 2-W"b" ; W"a" W"b"]
+true
+```
+
 ## Notes
 
 - Mathematica, Wolfram, MathLink are all trademarks of Wolfram Research.
