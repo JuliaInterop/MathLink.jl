@@ -1,3 +1,6 @@
+abstract type WTypes end
+
+
 """
     WSymbol(name::Union{String, Symbol})
     W"..."
@@ -28,9 +31,9 @@ julia> weval(W"Simplify"(ex, Assumptions=assume))
 W"Times"(-1, W"x")
 ```
 """
-struct WSymbol
+struct WSymbol <: WTypes
     name::String
-end
+end 
 WSymbol(sym::Symbol) = WSymbol(String(sym))
 Base.print(io::IO, s::WSymbol) = print(io, s.name)
 Base.show(io::IO, s::WSymbol) = print(io, 'W', '"', s.name, '"')
@@ -45,7 +48,7 @@ end
 
 A Wolfram arbitrary-precision real number.
 """
-struct WReal
+struct WReal <: WTypes
     value::String
 end
 Base.show(io::IO, x::WReal) = print(io, x.value)
@@ -56,7 +59,7 @@ Base.:(==)(a::WReal, b::WReal) = a.value == b.value
 
 A Wolfram arbitrary-precision integer.
 """
-struct WInteger
+struct WInteger <: WTypes
     value::String
 end
 Base.show(io::IO, x::WInteger) = print(io, x.value)
@@ -78,7 +81,7 @@ julia> weval(W`Function[x,x+1]`(2))
 3
 ```
 """
-struct WExpr
+struct WExpr <: WTypes
     head
     args
 end
