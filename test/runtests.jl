@@ -3,6 +3,8 @@ using Test
 
 import MathLink: WExpr, WSymbol
 
+
+
 @testset "integers" begin
     w = W"Factorial"(30)
     @test_throws MathLink.MathLinkError weval(Int, w)
@@ -206,19 +208,28 @@ end
     @test HasRecursiveGraphicsHead(weval(W`{Plot[x,{x,0,1}],Plot[x^2,{x,0,1}]}`))
 end
 
+
+
 @testset "W2Tex - LaTex conversion" begin
     @test W2Tex(W`(a+b)^(b+x)`) == "(a+b)^{b+x}"
     @test W2Tex(W`a`) == "a"
     @test W2Tex(W`ab`) == "\\text{ab}"
     @test W2Tex(W`ab*cd`) == "\\text{ab} \\text{cd}"
 
+   
     ###Testing that MIME form exists for the text/latex option of show.
     io = IOBuffer();
-    show(IOContext(io, :limit => true, :displaysize => (10, 10)),
-         "text/plain",W"a")
+    ioc = IOContext(io, :limit => true, :displaysize => (10, 10)) 
+    show(ioc,"text/plain",W"a")
     @test String(take!(io)) == "W\"a\""
-    show(IOContext(io, :limit => true, :displaysize => (10, 10)),
-         "text/plain",W"a"+W"b")
+    show(ioc,"text/plain",W"a"+W"b")
     @test String(take!(io)) == "W\"Plus\"(W\"a\", W\"b\")"
+
+    set_texOutput(true)
+    show(ioc,"text/latex",W"a"+W"b")
+    @test String(take!(io)) == "\$a+b\$"
+    @test showable("text/latex",W"a"+W"b")
+    set_texOutput(false)
+    @test !showable("text/latex",W"a"+W"b")
 end
 

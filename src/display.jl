@@ -10,6 +10,18 @@ function Base.show(io::IO, ::MIME"image/png", w::MathLink.WExpr)
 end
 
 
+####If the flag for tex-output evaluation does not exist
+## create it and set it to true.
+if !@isdefined(MLtexOutput)
+    MLtexOutput=true
+end
+
+export set_texOutput
+function set_texOutput(x::Bool)
+    global MLtexOutput
+    MLtexOutput=x
+end
+
 export HasGraphicsHead, HasRecursiveGraphicsHead, W2Tex
 
 
@@ -62,10 +74,14 @@ function HasGraphicsHead(w::MathLink.WExpr)
 end
 
 import Base.show
+Base.Multimedia.showable(::MIME"text/latex", w::MathLink.WSymbol) = MLtexOutput
 Base.show(io,::MIME"text/latex",x::MathLink.WSymbol) = print(io,"\$"*W2Tex(x)*"\$")
 
 import Base.Multimedia.showable
 function Base.Multimedia.showable(::MIME"text/latex", w::MathLink.WExpr)
+    if !MLtexOutput
+        return false
+    end
     if HasRecursiveGraphicsHead(w)
         return false
     else
