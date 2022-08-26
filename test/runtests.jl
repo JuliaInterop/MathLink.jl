@@ -30,7 +30,11 @@ import MathLink: WExpr, WSymbol
         @test W2Mstr(weval(W`a^2`)) == "(a^2)"
         @test W2Mstr(weval(W`e+a^(b+c)`)) == "((a^(b + c)) + e)"
         @test W2Mstr(weval(W`a + c + v + Sin[2 + x + Cos[q]]`)) == "(a + c + v + Sin[(2 + x + Cos[q])])"
+        set_GreedyEval(true)
         @test W2Mstr(W"a"+W"c"+W"v"+W"Sin"(2 +W"x" + W"Cos"(W"q"))) == "(a + c + v + Sin[(2 + x + Cos[q])])"
+        set_GreedyEval(false)
+        @test W2Mstr(W"a"+W"c"+W"v"+W"Sin"(2 +W"x" + W"Cos"(W"q"))) == "(((a + c) + v) + Sin[((2 + x) + Cos[q])])"
+
         @test W2Mstr(W`Sqrt[x+Sin[y]+z^(3/2)]`) == "Sqrt[(x + Sin[y] + (z^(3*(2^-1))))]"
 
     end
