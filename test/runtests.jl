@@ -3,6 +3,8 @@ using Test
 
 import MathLink: WExpr, WSymbol
 
+
+
 @testset "integers" begin
     w = W"Factorial"(30)
     @test_throws MathLink.MathLinkError weval(Int, w)
@@ -182,3 +184,52 @@ end
     P14 * Mat
     P14 * Mat* P14
 end
+
+
+
+
+@testset  "Find Graphiscs" begin
+    @test !HasGraphicsHead(W"a")
+    @test HasGraphicsHead(W`Plot[x,{x,0,1}]`)
+    @test HasGraphicsHead(W`ListPlot[x,{x,0,1}]`)
+    @test HasGraphicsHead(W`ListLinePlot3D[x,{x,0,1}]`)
+    @test HasGraphicsHead(W`Plot3D[x,{x,0,1}]`)
+    @test !HasGraphicsHead(W"a"+W"b")
+    @test HasGraphicsHead(weval(W`Plot[x,{x,0,1}]`))
+    @test !HasGraphicsHead(W`{Plot[x,{x,0,1}],Plot[x^2,{x,0,1}]}`)
+    @test !HasGraphicsHead(weval(W`{Plot[x,{x,0,1}],Plot[x^2,{x,0,1}]}`))
+
+    @test !HasRecursiveGraphicsHead(W`{2,a+v,{4+d}}`)
+    @test HasRecursiveGraphicsHead(W`Plot[x,{x,0,1}]`)
+    @test HasRecursiveGraphicsHead(W`{2,Plot[x^2,{x,0,1}]}`)
+    @test HasRecursiveGraphicsHead(W`{a+b,Plot[x^2,{x,0,1}]}`)
+    @test HasRecursiveGraphicsHead(W`{Plot[x,{x,0,1}],Plot[x^2,{x,0,1}]}`)
+    @test HasRecursiveGraphicsHead(W`{1,{Plot[x,{x,0,1}],Plot[x^2,{x,0,1}]}}`)
+    @test HasRecursiveGraphicsHead(weval(W`{Plot[x,{x,0,1}],Plot[x^2,{x,0,1}]}`))
+end
+
+
+
+@testset "W2Tex - LaTex conversion" begin
+    @test W2Tex(W`(a+b)^(b+x)`) == "(a+b)^{b+x}"
+    @test W2Tex(W`a`) == "a"
+    @test W2Tex(W`ab`) == "\\text{ab}"
+    @test W2Tex(W`ab*cd`) == "\\text{ab} \\text{cd}"
+
+   
+    ###Testing that MIME form exists for the text/latex option of show.
+    io = IOBuffer();
+    ioc = IOContext(io, :limit => true, :displaysize => (10, 10)) 
+    show(ioc,"text/plain",W"a")
+    @test String(take!(io)) == "W\"a\""
+    show(ioc,"text/plain",W"a"+W"b")
+    @test String(take!(io)) == "W\"Plus\"(W\"a\", W\"b\")"
+
+    set_texOutput(true)
+    show(ioc,"text/latex",W"a"+W"b")
+    @test String(take!(io)) == "\$a+b\$"
+    @test showable("text/latex",W"a"+W"b")
+    set_texOutput(false)
+    @test !showable("text/latex",W"a"+W"b")
+end
+

@@ -132,6 +132,10 @@ julia> P12 * [W"a" W"b" ; W`a+b` 2] == [ W"b" 2-W"b" ; W"a" W"b"]
 true
 ```
 
+## LateX printing in JuPyter Notebooks
+Printing in Juypter notebooks is by defaults done in latex.
+This can be turned off with the command `MathLink.set_texOutput(false)`
+
 ## Notes
 
 - Mathematica, Wolfram, MathLink are all trademarks of Wolfram Research.
