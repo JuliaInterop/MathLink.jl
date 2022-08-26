@@ -5,6 +5,67 @@ import MathLink: WExpr, WSymbol
 
 
 
+@testset "W2Mstr" begin
+    ###Test of a naive MathLink to Mathematica converter function (to resuts can be copied into mathematica directly"
+
+    @testset "Basic Algebra" begin
+        @test W2Mstr(W"a") == "a"
+        @test W2Mstr(W"x") == "x"
+        @test W2Mstr(W"x"+W"y") == "(x + y)"
+        @test W2Mstr(W`Sqrt[a + b]`) == "Sqrt[(a + b)]"
+        @test W2Mstr(W`Pow[x,2]`) == "Pow[x,2]"
+        @test W2Mstr(W`x^2`) == "(x^2)"
+        @test W2Mstr(W`a+b`) == "(a + b)"
+        @test W2Mstr(weval(W`a + c + v`)) == "(a + c + v)"
+        @test W2Mstr(2) == "2"
+        @test W2Mstr(W`x`) == "x"
+        @test W2Mstr(W"Sin"(W"x")) == "Sin[x]"
+        @test W2Mstr(W`Sin[x]`) == "Sin[x]"
+        
+    end    
+    @testset "Nested functions" begin
+        @test W2Mstr(weval(W`a + c*b + v`)) == "(a + (b*c) + v)"
+        @test W2Mstr(weval(W`(a + c)*(b + v)`)) == "((a + c)*(b + v))"
+        @test W2Mstr(weval(W`a^(b+c)`)) == "(a^(b + c))"
+        @test W2Mstr(weval(W`a^2`)) == "(a^2)"
+        @test W2Mstr(weval(W`e+a^(b+c)`)) == "((a^(b + c)) + e)"
+        @test W2Mstr(weval(W`a + c + v + Sin[2 + x + Cos[q]]`)) == "(a + c + v + Sin[(2 + x + Cos[q])])"
+        @test W2Mstr(W"a"+W"c"+W"v"+W"Sin"(2 +W"x" + W"Cos"(W"q"))) == "(a + c + v + Sin[(2 + x + Cos[q])])"
+        @test W2Mstr(W`Sqrt[x+Sin[y]+z^(3/2)]`) == "Sqrt[(x + Sin[y] + (z^(3*(2^-1))))]"
+
+    end
+
+    @testset "Complex values" begin
+        @test W2Mstr(weval(W`2*I`)) == "(2*I)"
+        @test W2Mstr(weval(W`2/I`)) == "(-2*I)"
+        @test W2Mstr(W`2 + 0*I`) == "(2 + (0*I))"
+        @test W2Mstr(W"Complex"(W"c",0)) == "c"
+        @test W2Mstr(weval(W"Complex"(W"c",0))) == "c"
+        @test W2Mstr(weval(W"Complex"(W"c",W"b"))) == "(c+b*I)"
+        @test W2Mstr(im) == "(1*I)"
+        @test W2Mstr(2*im) == "(2*I)"
+    end
+
+    @testset "Factions" begin
+        @test W2Mstr(W`3/4`) == "(3*(4^-1))"
+        @test W2Mstr(3//4) == "(3/4)"
+        @test W2Mstr(W`b/c`) == "(b*(c^-1))"
+        @test W2Mstr(W`b/(c^(a+c))`) == "(b*((c^(a + c))^-1))"
+        @test W2Mstr(W`(b^2)/(c^3)`) == "((b^2)*((c^3)^-1))"
+        @test W2Mstr(weval(W`(b^2)/(c^3)`)) == "((b^2)*(c^-3))"
+    end
+
+    @testset "Lists & Arrays" begin
+        @test W2Mstr([W`x`,W`a`]) == "{x,a}"
+        @test W2Mstr([W`x`]) == "{x}"
+        @test W2Mstr([W`x` W`y`; W`z` W`x`]) == "{{x,y},{z,x}}"
+    end
+    
+end
+
+
+
+
 @testset "integers" begin
     w = W"Factorial"(30)
     @test_throws MathLink.MathLinkError weval(Int, w)
