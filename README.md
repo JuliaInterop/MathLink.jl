@@ -132,6 +132,43 @@ julia> P12 * [W"a" W"b" ; W`a+b` 2] == [ W"b" 2-W"b" ; W"a" W"b"]
 true
 ```
 
+
+## W2Mstr - Mathematica conversion
+Sometimes one wants to be able to read the Julia MathLink expressions back into Mathematica. For that purpose, `W2Mstr` is also supplied. This implementation is currently quite defensive with parentheses, which gives a more verbose output than necessary. Here are a few examples
+
+```julia
+julia> W2Mstr(W`x`)
+"x"
+
+julia> W2Mstr(W"Sin"(W"x"))
+"Sin[x]"
+
+julia> W2Mstr(weval(W`a + c + v`))
+"(a + c + v)"
+
+julia> W2Mstr(weval(W`a^(b+c)`))
+"(a^(b + c))"
+
+julia> W2Mstr(weval(W`e+a^(b+c)`))
+"((a^(b + c)) + e)"
+
+julia> W2Mstr(W"a"+W"c"+W"v"+W"Sin"(2 +W"x" + W"Cos"(W"q")))
+"(a + c + v + Sin[(2 + x + Cos[q])])"
+
+julia> W2Mstr(im*2)
+"(2*I)"
+
+julia> W2Mstr(weval(W"Complex"(W"c",W"b")))
+"(c+b*I)"
+
+julia> W2Mstr(W"c"+im*W"b")
+"(((1*I)*b) + c)"
+
+julia> W2Mstr(W`b/(c^(a+c))`)
+"(b*((c^(a + c))^-1))"
+```
+
+
 ## LateX printing in JuPyter Notebooks
 Printing in Juypter notebooks is by defaults done in latex.
 This can be turned off with the command `MathLink.set_texOutput(false)`
