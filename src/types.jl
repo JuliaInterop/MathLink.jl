@@ -94,6 +94,27 @@ function Base.:(==)(a::WExpr, b::WExpr)
     return true
 end
 
+function Base.print(io::IO, w::WExpr)
+    print(io, w.head)
+    print(io, "[")
+    isfirst = true
+    for arg in w.args
+        if !isfirst
+            print(io, ", ")
+        else
+            isfirst = false
+        end
+        if typeof(arg) <: Union{AbstractVector, Tuple}
+            print(io, "{")
+            join(io, arg, ", ")
+            print(io, "}")
+        else
+            print(io, arg)
+        end
+    end
+    print(io, ']')
+end
+
 function Base.show(io::IO, w::WExpr)
     show(io, w.head)
     print(io, '(')

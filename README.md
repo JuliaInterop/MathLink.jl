@@ -32,6 +32,12 @@ W"Sin"(1.0)
 
 julia> sinx = W"Sin"(W"x")
 W"Sin"(W"x")
+
+julia> int = W"Integrate"(sinx, (W"x", 0, 1))
+W"Integrate"(W"Sin"(W"x"), (W"x", 0, 1))
+
+julia> println(int)
+Integrate[Sin[x], {x, 0, 1}]
 ```
 
 To parse an expression in the Wolfram Language, you can use the `W` cmd macro (note the backticks):
@@ -48,7 +54,7 @@ julia> weval(sin1)
 julia> weval(sinx)
 W"Sin"(W"x")
 
-julia> weval(W"Integrate"(sinx, (W"x", 0, 1)))
+julia> weval(int)
 W"Plus"(1, W"Times"(-1, W"Cos"(1)))
 ```
 
