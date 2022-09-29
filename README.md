@@ -6,33 +6,12 @@ This package provides access to Mathematica/Wolfram Engine via the MathLink libr
 
 ## Installation
 
-The package requires an installation of either [Mathematica](http://www.wolfram.com/mathematica/) or the free [Wolfram Engine](https://www.wolfram.com/engine/). It will attempt to find the installation at build time; if this fails, you will need to set the following environment variables:
-- `JULIA_MATHKERNEL`: the path of the MathKernel executable
-- `JULIA_MATHLINK`: the path of the MathLink dynamic library named
-  - `libML64i4.so`/ `libML32i4.so` on Linux
-  - `ml64i4.dll`/`ml32i4.dll`/`libML64.dll`/ `libML32.dll` on Windows
-
-After setting you may need to manually build the package
-```julia
-(@v1.X) pkg> build MathLink
-```
- 
-A separate workaround is to directly edit the deps/deps.jl file, which should be located (on Linux) at `~/.julia/packages/MathLink/<version dependent>/deps/deps.jl`
- 
-The contents of `deps.jl` could for instance read
-```julia
-const mlib = "/usr/local/Wolfram/Mathematica/11.3/SystemFiles/Links/MathLink/DeveloperKit/Linux-x86-64/CompilerAdditions/libML64i4"
-const mker = "WolframKernel"
-```
-After createing the file `deps.jl` try loading MathLink the usual way
-```julia
-(@v1.X) pkg> using MathLink
-```
+The package requires an installation of either [Mathematica](http://www.wolfram.com/mathematica/) or the free [Wolfram Engine](https://www.wolfram.com/engine/). It will attempt to find the installation at build time; if this fails, please see the [installation troublesshoot](#installation-troubleshoot) below.
  
  
 ## Usage
 
-The main interface consists of the `W""` string macro for specifying symbols. These are call-overloaded for building more complicated expressions 
+The main interface consists of the `W""` string macro for specifying symbols. These are call-overloaded for building more complicated expressions. 
 
 ```julia
 julia> using MathLink
@@ -73,7 +52,7 @@ julia> weval(sinx; x=2.0)
 
 ## The algebraic operators
 
-MathLink also overloads the `+`, `-`, `*`, `/`  operations
+MathLink also overloads the `+`, `-`, `*`, `/`  operations.
 
 ```julia
 julia> using MathLink
@@ -105,7 +84,7 @@ julia> W"a"-W"a"
 
 ## Fractions and Complex numbers
  
-The package also contains extentions to handle fractions
+The package also contains extensions to handle fractions.
 
 ```julia
 julia> weval(1//2)
@@ -130,7 +109,7 @@ W"Times"(-1, W"c")
 
 
 ## Matrix Multiplication
-Since the arithematic operators are overloaded, operations such as matrix multiplication are also possible by default
+Since the arithmetic operators are overloaded, operations such as matrix multiplication are also possible by default.
 
 ```julia
 julia> P12 = [ 0 1 ; 1 0 ]
@@ -183,8 +162,33 @@ julia> W2Mstr(W`b/(c^(a+c))`)
 
 
 ## LateX printing in JuPyter Notebooks
-Printing in Juypter notebooks is by defaults done in latex.
+Printing in Juypter notebooks is, by default, done in latex.
 This can be turned off with the command `MathLink.set_texOutput(false)`
+
+## Installation Troubleshoot
+The package requires an installation of either [Mathematica](http://www.wolfram.com/mathematica/) or the free [Wolfram Engine](https://www.wolfram.com/engine/). It will attempt to find the installation at build time; if this fails, you will need to set the following environment variables:
+- `JULIA_MATHKERNEL`: the path of the MathKernel executable
+- `JULIA_MATHLINK`: the path of the MathLink dynamic library named
+  - `libML64i4.so`/ `libML32i4.so` on Linux
+  - `ml64i4.dll`/`ml32i4.dll`/`libML64.dll`/ `libML32.dll` on Windows
+
+After setting, you may need to manually build the package
+```julia
+(@v1.X) pkg> build MathLink
+```
+ 
+A separate workaround is to directly edit the deps/deps.jl file, which should be located (on Linux) at `~/.julia/packages/MathLink/<version dependent>/deps/deps.jl`
+ 
+The contents of `deps.jl` could for instance, read
+```julia
+const mlib = "/usr/local/Wolfram/Mathematica/11.3/SystemFiles/Links/MathLink/DeveloperKit/Linux-x86-64/CompilerAdditions/libML64i4"
+const mker = "WolframKernel"
+```
+After creating the file `deps.jl` try loading MathLink the usual way
+```julia
+(@v1.X) pkg> using MathLink
+```
+
 
 ## Notes
 
