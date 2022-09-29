@@ -16,7 +16,20 @@ After setting you may need to manually build the package
 ```julia
 (@v1.X) pkg> build MathLink
 ```
-  
+ 
+A separate workaround is to directly edit the deps/deps.jl file, which should be located (on Linux) at `~/.julia/packages/MathLink/<version dependent>/deps/deps.jl`
+ 
+The contents of `deps.jl` could for instance read
+```julia
+const mlib = "/usr/local/Wolfram/Mathematica/11.3/SystemFiles/Links/MathLink/DeveloperKit/Linux-x86-64/CompilerAdditions/libML64i4"
+const mker = "WolframKernel"
+```
+After createing the file `deps.jl` try loading MathLink the usual way
+```julia
+(@v1.X) pkg> using MathLink
+```
+ 
+ 
 ## Usage
 
 The main interface consists of the `W""` string macro for specifying symbols. These are call-overloaded for building more complicated expressions 
