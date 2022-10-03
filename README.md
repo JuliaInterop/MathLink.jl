@@ -198,7 +198,7 @@ Loading `MathLink` then proclaims
 julia> using MathLink
 [ Info: Precompiling MathLink [18c93696-a329-5786-9845-8443133fa0b4]
 [ Info: Pretending fake installation works
-```julia
+```
 
 
 ## Notes
