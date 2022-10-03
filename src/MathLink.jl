@@ -6,11 +6,16 @@ export @W_str, @W_cmd, weval
 
 
 ###Checking that the deps.jl file exists. And throwing a readable error if it does not!
-if isfile("../deps/deps.jl")
-    include("../deps/deps.jl")
+
+FilePath=@__DIR__
+FilePath=FilePath[1:end-4]*"/deps/deps.jl"
+
+
+#if isfile("../deps/deps.jl")
+    #include("../deps/deps.jl")
+if isfile(FilePath)
+    include(FilePath)
 else
-    FilePath=@__DIR__
-    FilePath=FilePath[1:end-4]*"/deps/deps.jl"
     error("The file $FilePath does not exist.\n"
           *"This usually means that the MathLink installation failed.\n"
           *"Have you checked that Mathematica is installed on your system?")

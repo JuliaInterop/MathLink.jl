@@ -35,7 +35,8 @@ function refcount_dec()
 end
 
 function __init__()
-    if mlib == "" ###when JULIA_REGISTRYCI_AUTOMERGE=true the mlib is an empty string, and we can test for that
+    if mlib == ""
+        ###when JULIA_REGISTRYCI_AUTOMERGE=true the mlib is an empty string, and we can test for that
         # We need to be able to install and load this package without error for
         # Julia's registry AutoMerge to work. Skip initialization of the mathlink library.
         @info "Pretending fake installation works"
