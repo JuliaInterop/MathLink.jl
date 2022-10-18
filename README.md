@@ -6,7 +6,7 @@ This package provides access to Mathematica/Wolfram Engine via the MathLink libr
 
 ## Installation
 
-The package requires an installation of either [Mathematica](http://www.wolfram.com/mathematica/) or the free [Wolfram Engine](https://www.wolfram.com/engine/). It will attempt to find the installation at build time; if this fails, please see the [installation troublesshoot](#installation-troubleshoot) below.
+The package requires an installation of either [Mathematica](http://www.wolfram.com/mathematica/) or the free [Wolfram Engine](https://www.wolfram.com/engine/). It will attempt to find the installation at build time; if this fails, please see the [installation troubleshoot](#installation-troubleshoot) below.
  
  
 ## Usage
@@ -162,7 +162,7 @@ julia> W2Mstr(W`b/(c^(a+c))`)
 
 
 ## LateX printing in JuPyter Notebooks
-Printing in Juypter notebooks is, by default, done in latex.
+Printing in Jupyter notebooks is, by default, done in latex.
 This can be turned off with the command `MathLink.set_texOutput(false)`
 
 ## Installation Troubleshoot

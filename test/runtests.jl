@@ -6,7 +6,7 @@ import MathLink: WExpr, WSymbol
 
 
 @testset "W2Mstr" begin
-    ###Test of a naive MathLink to Mathematica converter function (to resuts can be copied into mathematica directly"
+    ###Test of a naive MathLink to Mathematica converter function (the results can be copied into mathematica directly)
 
     @testset "Basic Algebra" begin
         @test W2Mstr(W"a") == "a"
@@ -196,7 +196,7 @@ end
     @test im*(im*W"c") == weval(W`-c`)
   
     
-    #####Testing that complex nubmers can be put in weval
+    #####Testing that complex numbers can be put in weval
     @test weval(im+2) == weval(W`I+2`)
     @test weval(im*2) == weval(W`I*2`)
     @test weval(im) == weval(W`I`)
@@ -253,7 +253,7 @@ end
 
 
 
-@testset  "Find Graphiscs" begin
+@testset  "Find Graphics" begin
     @test !HasGraphicsHead(W"a")
     @test HasGraphicsHead(W`Plot[x,{x,0,1}]`)
     @test HasGraphicsHead(W`ListPlot[x,{x,0,1}]`)
