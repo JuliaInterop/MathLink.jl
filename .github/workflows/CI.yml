@@ -12,7 +12,7 @@ jobs:
       options: --user root
     env:
       WOLFRAM_SYSTEM_ID: Linux-x86-64
-      WOLFRAMSCRIPT_ENTITLEMENTID: ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }}
+      WOLFRAMINIT: -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }}-pwfile '!cloudlm.wolfram.com'
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
