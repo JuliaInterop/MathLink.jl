@@ -5,55 +5,20 @@ on:
     tags: ["*"]
   pull_request:
 jobs:
-  test:
-    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        version:
-          - '1.0'
-          - '1' # automatically expands to the latest stable 1.x release of Julia
-          - nightly
-        os:
-          - ubuntu-latest
-        arch:
-          - x64
-          - x86
+  Linux:
+    runs-on: ubuntu-latest
+    container:
+      image: wolframresearch/wolframengine:latest
+      options: --user root
+    env:
+      WOLFRAM_SYSTEM_ID: Linux-x86-64
+      WOLFRAMSCRIPT_ENTITLEMENTID: ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }}
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
-          version: ${{ matrix.version }}
-          arch: ${{ matrix.arch }}
-      - uses: actions/cache@v1
-        env:
-          cache-name: cache-artifacts
-        with:
-          path: ~/.julia/artifacts
-          key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-test-${{ env.cache-name }}-
-            ${{ runner.os }}-test-
-            ${{ runner.os }}-
-  
-  
-      - name: Cache Wolfram Engine installer
-        id: cache-wolfram
-        uses: actions/cache@v2
-        with:
-          path: WolframEngine.sh
-          key: ${{ runner.os }}-wolfram-installer
-      - name: Download Wolfram Engine installer
-        if: steps.cache-wolfram.outputs.cache-hit != 'true'
-        run: wget -O WolframEngine.sh https://account.wolfram.com/download/public/wolfram-engine/desktop/LINUX
-      - name: Install Wolfram Engine
-        run: |
-          printf "\n\n" | sudo bash WolframEngine.sh
-          WolframKernel -version
-          WolframKernel -machineid
-          printf '\n1001-1010-456789\n5874-162-609:::20220915\n' | WolframKernel
-
+          version: 1
+          arch: x64 
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
