@@ -73,7 +73,7 @@ jobs:
           echo 'Installing Wolfram Engine...'
           Start-Process "msiexec.exe" -ArgumentList $MSIArguments -Wait -NoNewWindow
           echo 'Installed Wolfram Engine.'
-      - run: reg query HKLM\SOFTWARE\WolframResearch\Installations\ /s
+      - run: reg query 'HKLM\SOFTWARE\Wolfram Research\Installations\' /s
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
