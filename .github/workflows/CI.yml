@@ -14,6 +14,10 @@ jobs:
       WOLFRAM_SYSTEM_ID: Linux-x86-64
     steps:
       - uses: actions/checkout@v2
+      - run: WolframKernel -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile '!cloudlm.wolfram.com' -noprompt -run 'WriteString[$Output,$InstallationDirectory];Exit[]'
+      - run: WolframKernel -noprompt -run 'WriteString[$Output,$InstallationDirectory];Exit[]'
+        env:
+          MATHKERNELINIT: "-entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile '!cloudlm.wolfram.com'"
       - run: WolframKernel -noprompt -run 'WriteString[$Output,$InstallationDirectory];Exit[]'
         env:
           WOLFRAMINIT: "-entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile '!cloudlm.wolfram.com'"
