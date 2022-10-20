@@ -15,6 +15,7 @@ jobs:
       WOLFRAMINIT: -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }}-pwfile '!cloudlm.wolfram.com'
     steps:
       - uses: actions/checkout@v2
+      - run: WolframKernel -noprompt -run 'WriteString[$Output,$InstallationDirectory];Exit[]'
       - uses: julia-actions/setup-julia@v1
         with:
           version: 1
