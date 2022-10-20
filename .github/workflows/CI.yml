@@ -12,7 +12,7 @@ jobs:
       options: --user root
     env:
       WOLFRAM_SYSTEM_ID: Linux-x86-64
-      WOLFRAMINIT: -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }}-pwfile '!cloudlm.wolfram.com'
+      WOLFRAMINIT: -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile '!cloudlm.wolfram.com'
     steps:
       - uses: actions/checkout@v2
       - run: WolframKernel -noprompt -run 'WriteString[$Output,$InstallationDirectory];Exit[]'
