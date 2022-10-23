@@ -74,7 +74,7 @@ function find_lib_ker()
         else
             wpaths = ["C:\\Program Files\\Wolfram Research\\Mathematica", "C:\\Program Files\\Wolfram Research\\Wolfram Engine"]
         end
-        for mpath in 
+        for mpath in wpaths
             if isdir(mpath)
                 vers = readdir(mpath)
                 ver = vers[argmax(map(VersionNumber,vers))]

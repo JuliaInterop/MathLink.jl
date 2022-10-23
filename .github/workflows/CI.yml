@@ -96,13 +96,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v2
 
-      - name: Cache/restore Wolfram Engine install
-        id: cache-restore
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.WOLFRAMENGINE_INSTALLATION_DIRECTORY }}
-          key: wolframengine-${{ env.WOLFRAM_SYSTEM_ID }}-${{ env.WOLFRAMENGINE_CACHE_KEY }}
-
+      # we don't cache the installation, as it doesn't play nice with spotlight
       - name: Install Wolfram Engine
         if: steps.cache-restore.outputs.cache-hit != 'true'
         run: |
