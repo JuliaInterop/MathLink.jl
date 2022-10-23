@@ -72,18 +72,21 @@ function find_lib_ker()
         if haskey(ENV, "JULIA_WOLFRAM_DIR")
             wpaths = [ENV["JULIA_WOLFRAM_DIR"]]
         else
-            wpaths = ["C:\\Program Files\\Wolfram Research\\Mathematica", "C:\\Program Files\\Wolfram Research\\Wolfram Engine"]
-        end
-        for mpath in wpaths
-            if isdir(mpath)
-                vers = readdir(mpath)
-                ver = vers[argmax(map(VersionNumber,vers))]
-                lib = Libdl.find_library(
-                    ["ml$(Sys.WORD_SIZE)i4.dll", "libML$(Sys.WORD_SIZE)i4", "ml$(Sys.WORD_SIZE)i3.dll", "libML$(Sys.WORD_SIZE)i3"],
-                    [joinpath(mpath,ver,"SystemFiles\\Links\\MathLink\\DeveloperKit",archdir,"SystemAdditions")])
-                ker = joinpath(mpath,ver,"math.exe")
-                return lib, ker
+            wpaths = String[]
+            for dir in ["C:\\Program Files\\Wolfram Research\\Mathematica", "C:\\Program Files\\Wolfram Research\\Wolfram Engine"]
+                if isdir(mpath)
+                    for ver in readdir(mpath)
+                        push!(wpaths, joinpath(dir, ver))
+                    end
+                end
             end
+        end
+        for wpath in wpaths
+            lib = Libdl.find_library(
+                ["ml$(Sys.WORD_SIZE)i4.dll", "libML$(Sys.WORD_SIZE)i4", "ml$(Sys.WORD_SIZE)i3.dll", "libML$(Sys.WORD_SIZE)i3"],
+                [joinpath(wpath,"SystemFiles\\Links\\MathLink\\DeveloperKit",archdir,"SystemAdditions")])
+            ker = joinpath(wpath,"math.exe")
+            return lib, ker
         end
     end
 
