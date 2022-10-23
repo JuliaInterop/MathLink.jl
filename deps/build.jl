@@ -5,7 +5,7 @@ function find_lib_ker()
         return ENV["JULIA_MATHLINK"], ENV["JULIA_MATHKERNEL"]
     elseif Sys.isapple()
         # we query OS X metadata for possible non-default installations
-        # TODO: can use `mdls -raw -name kMDItemVersion $path` to get the version
+        # TODO: can use `mdls -raw -name kMDItemVersion $path` to get the versio
                 
         # Mathematica
         for path in readlines(`mdfind "kMDItemCFBundleIdentifier == 'com.wolfram.Mathematica'"`)
@@ -69,16 +69,24 @@ function find_lib_ker()
         # it looks like it registers stuff in
         # HKEY_LOCAL_MACHINE\SOFTWARE\Wolfram Research\Installations\
         # but not clear how it is organized
-        for mpath in ["C:\\Program Files\\Wolfram Research\\Mathematica", "C:\\Program Files\\Wolfram Research\\Wolfram Engine"]
-            if isdir(mpath)
-                vers = readdir(mpath)
-                ver = vers[argmax(map(VersionNumber,vers))]
-                lib = Libdl.find_library(
-                    ["ml$(Sys.WORD_SIZE)i4.dll", "libML$(Sys.WORD_SIZE)i4", "ml$(Sys.WORD_SIZE)i3.dll", "libML$(Sys.WORD_SIZE)i3"],
-                    [joinpath(mpath,ver,"SystemFiles\\Links\\MathLink\\DeveloperKit",archdir,"SystemAdditions")])
-                ker = joinpath(mpath,ver,"math.exe")
-                return lib, ker
+        if haskey(ENV, "JULIA_WOLFRAM_DIR")
+            wpaths = [ENV["JULIA_WOLFRAM_DIR"]]
+        else
+            wpaths = String[]
+            for dir in ["C:\\Program Files\\Wolfram Research\\Mathematica", "C:\\Program Files\\Wolfram Research\\Wolfram Engine"]
+                if isdir(mpath)
+                    for ver in readdir(mpath)
+                        push!(wpaths, joinpath(dir, ver))
+                    end
+                end
             end
+        end
+        for wpath in wpaths
+            lib = Libdl.find_library(
+                ["ml$(Sys.WORD_SIZE)i4.dll", "libML$(Sys.WORD_SIZE)i4", "ml$(Sys.WORD_SIZE)i3.dll", "libML$(Sys.WORD_SIZE)i3"],
+                [joinpath(wpath,"SystemFiles\\Links\\MathLink\\DeveloperKit",archdir,"SystemAdditions")])
+            ker = joinpath(wpath,"math.exe")
+            return lib, ker
         end
     end
 

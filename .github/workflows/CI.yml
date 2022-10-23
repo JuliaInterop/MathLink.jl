@@ -1,0 +1,113 @@
+# based on https://github.com/WolframResearch/WL-FunctionCompile-CI-Template/blob/d130d1fef06f0597a2e81987140fd21eedb4dd3f/.github/workflows/compile-wl-functions.yml
+
+name: CI
+on:
+  push:
+    branches: [master]
+    tags: ["*"]
+  pull_request:
+jobs:
+  Linux:
+    runs-on: ubuntu-latest
+    container:
+      image: wolframresearch/wolframengine:latest
+      options: --user root
+    env:
+      WOLFRAMINIT:  -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile !cloudlm.wolfram.com
+    steps:
+      - uses: actions/checkout@v2
+      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/cache@v1
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-runtest@v1
+      - uses: julia-actions/julia-processcoverage@v1
+      - uses: codecov/codecov-action@v1
+        with:
+          file: lcov.info
+
+  MacOS:
+    runs-on: macos-latest
+    env:
+      WOLFRAMINIT:  -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile !cloudlm.wolfram.com
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      # we don't cache the installation, as it doesn't play nice with spotlight
+      - name: Install Wolfram Engine
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        run: |
+          echo 'Installing Wolfram Engine...'
+          brew install --cask wolfram-engine
+          echo 'Installed Wolfram Engine.'
+
+      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/cache@v1
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-runtest@v1
+      - uses: julia-actions/julia-processcoverage@v1
+      - uses: codecov/codecov-action@v1
+        with:
+          file: lcov.info
+
+  Windows:
+    runs-on: windows-latest
+    env:
+      WOLFRAM_SYSTEM_ID: Windows-x86-64
+      WOLFRAMENGINE_INSTALL_MSI_DOWNLOAD_URL: https://files.wolframcdn.com/packages/winget/13.0.0.0/WolframEngine_13.0.0_WIN.msi
+      WOLFRAMENGINE_CACHE_KEY: WolframEngine-A
+      WOLFRAMENGINE_INSTALLATION_SUBDIRECTORY: WolframEngine
+      WOLFRAMINIT:  -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile !cloudlm.wolfram.com
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Cache/restore Wolfram Engine install
+        id: cache-restore
+        uses: actions/cache@v2
+        env:
+          WOLFRAMENGINE_INSTALLATION_DIRECTORY: '${{ runner.temp }}\${{ env.WOLFRAMENGINE_INSTALLATION_SUBDIRECTORY }}'
+        with:
+          path: ${{ env.WOLFRAMENGINE_INSTALLATION_DIRECTORY }}
+          key: wolframengine-${{ env.WOLFRAM_SYSTEM_ID }}-${{ env.WOLFRAMENGINE_CACHE_KEY }}
+
+      - name: Download and install Wolfram Engine
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        env:
+          WOLFRAMENGINE_INSTALLATION_DIRECTORY: '${{ runner.temp }}\${{ env.WOLFRAMENGINE_INSTALLATION_SUBDIRECTORY }}'
+          WOLFRAMENGINE_INSTALL_MSI_PATH: '${{ runner.temp }}\WolframEngine-Install.msi'
+          WOLFRAMENGINE_INSTALL_LOG_PATH: '${{ runner.temp }}\WolframEngine-Install.log'
+        run: |
+          echo 'Downloading Wolfram Engine installer...'
+          $msiFile = '${{ env.WOLFRAMENGINE_INSTALL_MSI_PATH }}'
+          $logFile = '${{ env.WOLFRAMENGINE_INSTALL_LOG_PATH }}'
+
+          Import-Module BitsTransfer
+          Start-BitsTransfer '${{ env.WOLFRAMENGINE_INSTALL_MSI_DOWNLOAD_URL }}' $msiFile
+          echo 'Downloaded Wolfram Engine installer.'
+
+          $DataStamp = get-date -Format yyyyMMddTHHmmss
+          $MSIArguments = @(
+              "/i"
+              ('"{0}"' -f $msiFile)
+              'INSTALLLOCATION="${{ env.WOLFRAMENGINE_INSTALLATION_DIRECTORY }}"'
+              "/qn"
+              "/norestart"
+              "/L*v"
+              $logFile
+          )
+          echo 'Installing Wolfram Engine...'
+          Start-Process "msiexec.exe" -ArgumentList $MSIArguments -Wait -NoNewWindow
+          echo 'Installed Wolfram Engine.'
+      - run: reg query 'HKCU\SOFTWARE\' /s
+      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/cache@v1
+      - uses: julia-actions/julia-buildpkg@v1
+        env:
+          JULIA_WOLFRAM_DIR: '${{ runner.temp }}\${{ env.WOLFRAMENGINE_INSTALLATION_SUBDIRECTORY }}'
+      - uses: julia-actions/julia-runtest@v1
+      - uses: julia-actions/julia-processcoverage@v1
+      - uses: codecov/codecov-action@v1
+        with:
+          file: lcov.info
+          
