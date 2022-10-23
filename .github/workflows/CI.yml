@@ -1,3 +1,5 @@
+# based on https://github.com/WolframResearch/WL-FunctionCompile-CI-Template/blob/d130d1fef06f0597a2e81987140fd21eedb4dd3f/.github/workflows/compile-wl-functions.yml
+
 name: CI
 on:
   push:
@@ -11,7 +13,6 @@ jobs:
       image: wolframresearch/wolframengine:latest
       options: --user root
     env:
-      WOLFRAM_SYSTEM_ID: Linux-x86-64
       WOLFRAMINIT:  -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile !cloudlm.wolfram.com
     steps:
       - uses: actions/checkout@v2
@@ -23,7 +24,32 @@ jobs:
       - uses: codecov/codecov-action@v1
         with:
           file: lcov.info
-          
+
+  MacOS:
+    runs-on: macos-latest
+    env:
+      WOLFRAMINIT:  -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile !cloudlm.wolfram.com
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      # we don't cache the installation, as it doesn't play nice with spotlight
+      - name: Install Wolfram Engine
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        run: |
+          echo 'Installing Wolfram Engine...'
+          brew install --cask wolfram-engine
+          echo 'Installed Wolfram Engine.'
+
+      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/cache@v1
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-runtest@v1
+      - uses: julia-actions/julia-processcoverage@v1
+      - uses: codecov/codecov-action@v1
+        with:
+          file: lcov.info
+
   Windows:
     runs-on: windows-latest
     env:
@@ -85,30 +111,3 @@ jobs:
         with:
           file: lcov.info
           
-  MacOS:
-    runs-on: macos-latest
-    env:
-      WOLFRAM_SYSTEM_ID: MacOSX-x86-64
-      WOLFRAMENGINE_CACHE_KEY: WolframEngine-A
-      WOLFRAMENGINE_INSTALLATION_DIRECTORY: "/Applications/Wolfram Engine.app"
-      WOLFRAMINIT:  -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile !cloudlm.wolfram.com
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v2
-
-      # we don't cache the installation, as it doesn't play nice with spotlight
-      - name: Install Wolfram Engine
-        if: steps.cache-restore.outputs.cache-hit != 'true'
-        run: |
-          echo 'Installing Wolfram Engine...'
-          brew install --cask wolfram-engine
-          echo 'Installed Wolfram Engine.'
-
-      - uses: julia-actions/setup-julia@v1
-      - uses: julia-actions/cache@v1
-      - uses: julia-actions/julia-buildpkg@v1
-      - uses: julia-actions/julia-runtest@v1
-      - uses: julia-actions/julia-processcoverage@v1
-      - uses: codecov/codecov-action@v1
-        with:
-          file: lcov.info
