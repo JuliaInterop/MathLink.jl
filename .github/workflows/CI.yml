@@ -11,7 +11,6 @@ jobs:
       image: wolframresearch/wolframengine:latest
       options: --user root
     env:
-      WOLFRAM_SYSTEM_ID: Linux-x86-64
       WOLFRAMINIT:  -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile !cloudlm.wolfram.com
     steps:
       - uses: actions/checkout@v2
@@ -32,6 +31,8 @@ jobs:
       WOLFRAMENGINE_CACHE_KEY: WolframEngine-A
       WOLFRAMENGINE_INSTALLATION_SUBDIRECTORY: WolframEngine
       WOLFRAMINIT:  -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile !cloudlm.wolfram.com
+      JULIA_WOLFRAM_DIR: '${{ runner.temp }}\${{ env.WOLFRAMENGINE_INSTALLATION_SUBDIRECTORY }}'
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
@@ -93,13 +94,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
-
-      - name: Cache/restore Wolfram Engine install
-        id: cache-restore
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.WOLFRAMENGINE_INSTALLATION_DIRECTORY }}
-          key: wolframengine-${{ env.WOLFRAM_SYSTEM_ID }}-${{ env.WOLFRAMENGINE_CACHE_KEY }}
 
       - name: Install Wolfram Engine
         if: steps.cache-restore.outputs.cache-hit != 'true'

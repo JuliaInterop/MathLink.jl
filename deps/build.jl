@@ -5,7 +5,7 @@ function find_lib_ker()
         return ENV["JULIA_MATHLINK"], ENV["JULIA_MATHKERNEL"]
     elseif Sys.isapple()
         # we query OS X metadata for possible non-default installations
-        # TODO: can use `mdls -raw -name kMDItemVersion $path` to get the version
+        # TODO: can use `mdls -raw -name kMDItemVersion $path` to get the versio
                 
         # Mathematica
         for path in readlines(`mdfind "kMDItemCFBundleIdentifier == 'com.wolfram.Mathematica'"`)
@@ -69,7 +69,12 @@ function find_lib_ker()
         # it looks like it registers stuff in
         # HKEY_LOCAL_MACHINE\SOFTWARE\Wolfram Research\Installations\
         # but not clear how it is organized
-        for mpath in ["C:\\Program Files\\Wolfram Research\\Mathematica", "C:\\Program Files\\Wolfram Research\\Wolfram Engine"]
+        if haskey(ENV, "JULIA_WOLFRAM_DIR")
+            wpaths = [ENV["JULIA_WOLFRAM_DIR"]]
+        else
+            wpaths = ["C:\\Program Files\\Wolfram Research\\Mathematica", "C:\\Program Files\\Wolfram Research\\Wolfram Engine"]
+        end
+        for mpath in 
             if isdir(mpath)
                 vers = readdir(mpath)
                 ver = vers[argmax(map(VersionNumber,vers))]
