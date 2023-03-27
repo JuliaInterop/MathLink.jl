@@ -137,9 +137,11 @@ end
 
 @testset "interpolation" begin
     x = exp(1)
-    @test W`Sin[$x]` == W"Sin"(x)
-
+    @test W`Sin[$x]` == W"Sin"(x)    
     @test W`Cos[$(log(2))]` == W"Cos"(log(2))
+
+    @test W`Sin[$(1.2e19)]` == W`Sin[1.2*^19]`
+    @test string(W`Sin[$(1.2e19)]`) == "W`Sin[1.2*^19]`"
 end
 
 

@@ -115,7 +115,14 @@ end
 print_wexpr(io::IO, wsym::WSymbol) = print(io, wsym.name)
 print_wexpr(io::IO, wreal::WReal) = print(io, wreal.value)
 print_wexpr(io::IO, wint::WInteger) = print(io, wint.value)
-print_wexpr(io::IO, x::Float64) = print(io, x)
+function print_wexpr(io::IO, x::Float64) 
+    s = split(string(x),'e')
+    if length(s) == 1
+        print(io, x)
+    else
+        print(io, s[1], "*^", s[2])
+    end
+end
 print_wexpr(io::IO, x::Int) = print(io, x)
 print_wexpr(io::IO, x::String) = show(io, x)
 print_wexpr(io::IO, x) = print(io, "\$(", x, ")")
