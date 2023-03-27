@@ -59,11 +59,55 @@ end
 wevalstr(T, expr) = wevalstr(_defaultlink(), T, expr)
 wevalstr(expr) = wevalstr(Any, expr)
 
+"""
+    MathLink.parseexpr(str::AbstractString)
+
+Parse a string `str` as a Wolfram Language expression.
+"""
 function parseexpr(str::AbstractString)
     r = weval(W"ToExpression"(str, W"StandardForm", W"Hold"))
     r.args[1]
 end
 
+"""
+    W`expr`
+
+Parse a string `expr` as a Wolfram Language expression. 
+"""
 macro W_cmd(str)
-    quote parseexpr($(esc(Meta.parse("\"$(escape_string(str))\"")))) end
+    #quote parseexpr($(esc(Meta.parse("\"$(escape_string(str))\"")))) end
+    string_expr = Meta.parse("\"$(escape_string(str))\"")
+    subst_dict = Dict{WSymbol,Any}()
+    if string_expr isa String
+        string = string_expr
+    elseif string_expr isa Expr && string_expr.head == :string
+        for i in eachindex(string_expr.args)
+            arg = string_expr.args[i]
+            if !(arg isa String)
+                sym = weval(W"Unique"(W"JuliaWSTP"))
+                subst_dict[sym] = arg
+                string_expr.args[i] = "($(sym.name))"
+            end
+        end
+        string = join(string_expr.args)
+    else
+        error("Invalid string expression: $string_expr")
+    end
+    wexpr = parseexpr(string)
+    to_julia_expr(wexpr, subst_dict)
 end
+
+function to_julia_expr(wexpr::WExpr, subst_dict)
+    head = to_julia_expr(wexpr.head, subst_dict)
+    args = map(x->to_julia_expr(x, subst_dict), wexpr.args)
+    :(WExpr($head, [$(args...)]))
+end
+function to_julia_expr(wsym::WSymbol, dict)
+    if haskey(dict, wsym)
+        return esc(dict[wsym])
+    else
+        return wsym
+    end
+end
+to_julia_expr(val, dict) = val
+
