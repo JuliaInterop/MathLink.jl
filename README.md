@@ -20,16 +20,16 @@ julia> W"Sin"
 W"Sin"
 
 julia> sin1 = W"Sin"(1.0)
-W"Sin"(1.0)
+W`Sin[1.0]`
 
 julia> sinx = W"Sin"(W"x")
-W"Sin"(W"x")
+W`Sin[x]`
 ```
 
 To parse an expression in the Wolfram Language, you can use the `W` cmd macro (note the backticks):
 ```julia
 julia> W`Sin[1]`
-W"Sin"(1)
+W`Sin[1]`
 ```
 
 `weval` evaluates an expression:
@@ -38,10 +38,10 @@ julia> weval(sin1)
 0.8414709848078965
 
 julia> weval(sinx)
-W"Sin"(W"x")
+W`Sin[x]`
 
 julia> weval(W"Integrate"(sinx, (W"x", 0, 1)))
-W"Plus"(1, W"Times"(-1, W"Cos"(1)))
+W`Plus[1, Times[-1, Cos[1]]]`
 ```
 
 Keyword arguments can be used to pass local variables
@@ -58,24 +58,25 @@ MathLink also overloads the `+`, `-`, `*`, `/`  operations.
 julia> using MathLink
 
 julia> W"a"+W"b"
-W"Plus"(W"a",W"b")
+W`Plus[a, b]`
 
 julia> W"a"+W"a"
-W"Plus"(W"a",W"a")
+W`Plus[a, a]`
 
 julia> W"a"-W"a"
-W"Plus"(W"a",W"Minus"(W"a"))
+W`Plus[a, Minus[a]]`
 ```
 
 One can toggle automatic use of `weval`  on-and-off using `set_GreedyEval(x::Bool)`
 
 ```julia
-julia>set_GreedyEval(true)
+julia> set_GreedyEval(true);
+
 julia> W"a"+W"b"
-W"Plus"(W"a",W"b")
+W`Plus[a, b]`
 
 julia> W"a"+W"a"
-W"Times"(2,W"a")
+W`Times[2, a]`
 
 julia> W"a"-W"a"
 0
@@ -88,23 +89,23 @@ The package also contains extensions to handle fractions.
 
 ```julia
 julia> weval(1//2)
-W"Rational"(1, 2)
+W`Rational[1, 2]`
 
 julia> (4//5)*W"a"
-W"Times"(W"Rational"(4, 5), W"a")
+W`Times[Rational[4, 5], a]`
 
 julia> W"a"/(4//5)
-W"Times"(W"Rational"(5, 4), W"a")
+W`Times[Rational[5, 4], a]`
 ```
 
 and complex numbers
 
 ```julia
 julia> im*W"a"
-W"Times"(W"Complex"(0, 1), W"a")
+W`Times[Complex[0, 1], a]`
 
 julia> im*(im*W"c")
-W"Times"(-1, W"c")
+W`Times[-1, c]`
 ```
 
 

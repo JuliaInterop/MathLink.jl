@@ -137,9 +137,11 @@ end
 
 @testset "interpolation" begin
     x = exp(1)
-    @test W`Sin[$x]` == W"Sin"(x)
-
+    @test W`Sin[$x]` == W"Sin"(x)    
     @test W`Cos[$(log(2))]` == W"Cos"(log(2))
+
+    @test W`Sin[$(1.2e19)]` == W`Sin[1.2*^19]`
+    @test string(W`Sin[$(1.2e19)]`) == "W`Sin[1.2*^19]`"
 end
 
 
@@ -284,15 +286,12 @@ end
    
     ###Testing that MIME form exists for the text/latex option of show.
     io = IOBuffer();
-    ioc = IOContext(io, :limit => true, :displaysize => (10, 10)) 
-    show(ioc,"text/plain",W"a")
-    @test String(take!(io)) == "W\"a\""
-    show(ioc,"text/plain",W"a"+W"b")
-    @test String(take!(io)) == "W\"Plus\"(W\"a\", W\"b\")"
+    context = IOContext(io, :limit => true, :displaysize => (10, 10)) 
+    @test sprint(show,"text/plain",W"a"; context) == "W\"a\""
+    @test sprint(show,"text/plain",W"a"+W"b"; context) == "W`Plus[a, b]`"
 
     set_texOutput(true)
-    show(ioc,"text/latex",W"a"+W"b")
-    @test String(take!(io)) == "\$a+b\$"
+    @test sprint(show,"text/latex",W"a"+W"b") == "\$a+b\$"
     @test showable("text/latex",W"a"+W"b")
     set_texOutput(false)
     @test !showable("text/latex",W"a"+W"b")

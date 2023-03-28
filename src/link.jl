@@ -35,6 +35,23 @@ function open!(link::Link, args::AbstractString)
     return link
 end
 
+function open!(link::Link, args::Vector)
+    # MLOpenString
+    # local link
+    err = Ref{Cint}()
+    ptr = ccall((:MLOpenArgcArgv, mlib), CLink,
+                 (Env, Cint, Ptr{Cstring}, Ptr{Cint}),
+                 env, length(args), args, err)
+    if err[] != 0
+        error("Could not open MathLink link")
+    end
+    link.ptr = ptr
+
+    refcount_inc()
+    finalizer(close, link)
+    return link
+end
+
 open(args::AbstractString) = open!(Link(C_NULL), args)
 
 function Base.close(link::Link)
@@ -45,9 +62,37 @@ function Base.close(link::Link)
     end
 end
 
+function getname(link::Link)
+    # WSLINK WSGetLinkName(WSLINK link)
+    ptr = ccall((:MLUTF8LinkName, mlib), Cstring, (CLink,), link)
+    ptr == C_NULL && throw(MathLinkError(link))
+    str = unsafe_string(ptr)
+    ccall((:MLReleaseUTF8LinkName, mlib), Cvoid, (CLink,Cstring), link, ptr)
+    return str
+end
+
+function duplicate(link::Link, name::AbstractString)
+    # WSLINK WSDuplicateLink(WSLINK link, int *errp)
+    err = Ref{Cint}()
+    ptr = ccall((:MLDuplicateLink, mlib), CLink, (CLink, Cstring, Ptr{Cint}), link, name, err)
+    if err[] != 0
+        throw(MathLinkError(link))
+    end
+    newlink = Link(ptr)
+    refcount_inc()
+    finalizer(close, newlink)
+    return newlink
+end
+
+
 function _defaultlink()
     if defaultlink.ptr == C_NULL
-        args = "-linkname '\"$mker\" -mathlink' -linkmode launch"
+        args = [
+            "-linkname",
+            "\"$mker\" -mathlink",
+            "-linkmode",
+            "launch",
+        ]
         open!(defaultlink, args)
 
         # Ignore first input packet

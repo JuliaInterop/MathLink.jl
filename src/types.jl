@@ -40,7 +40,7 @@ Base.show(io::IO, s::WSymbol) = print(io, 'W', '"', s.name, '"')
 Base.:(==)(a::WSymbol, b::WSymbol) = a.name == b.name
 
 macro W_str(str)
-    quote WSymbol($(esc(Meta.parse("\"$(escape_string(str))\"")))) end
+    :(WSymbol($str))
 end
 
 """
@@ -81,7 +81,7 @@ julia> weval(W`Function[x,x+1]`(2))
 3
 ```
 """
-struct WExpr <: WTypes
+mutable struct WExpr <: WTypes
     head
     args
 end
@@ -94,20 +94,40 @@ function Base.:(==)(a::WExpr, b::WExpr)
     return true
 end
 
-function Base.show(io::IO, w::WExpr)
-    show(io, w.head)
-    print(io, '(')
-    isfirst = true
-    for arg in w.args
-        if !isfirst
-            print(io, ", ")
-        else
-            isfirst = false
-        end
-        show(io, arg)
-    end
-    print(io, ')')
+function Base.show(io::IO, wexpr::WExpr)
+    print(io, "W`")
+    print_wexpr(io, wexpr)
+    print(io, "`")
 end
+
+function print_wexpr(io::IO, wexpr::WExpr)
+    print_wexpr(io, wexpr.head)
+    print(io, '[')
+    if length(wexpr.args) > 0
+        print_wexpr(io, wexpr.args[1])
+        for arg in wexpr.args[2:end]
+            print(io, ", ")
+            print_wexpr(io, arg)
+        end
+    end
+    print(io, ']')
+end
+print_wexpr(io::IO, wsym::WSymbol) = print(io, wsym.name)
+print_wexpr(io::IO, wreal::WReal) = print(io, wreal.value)
+print_wexpr(io::IO, wint::WInteger) = print(io, wint.value)
+function print_wexpr(io::IO, x::Float64) 
+    s = split(string(x),'e')
+    if length(s) == 1
+        print(io, x)
+    else
+        print(io, s[1], "*^", s[2])
+    end
+end
+print_wexpr(io::IO, x::Int) = print(io, x)
+print_wexpr(io::IO, x::String) = show(io, x)
+print_wexpr(io::IO, x) = print(io, "\$(", x, ")")
+
+
 
 
 function (w::WSymbol)(args...; kwargs...)

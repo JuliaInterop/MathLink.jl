@@ -26,7 +26,7 @@ export HasGraphicsHead, HasRecursiveGraphicsHead, W2Tex
 
 
 #### Code to produce LaTex strings
-W2Tex(x::WTypes) = weval(W`ToString@TeXForm[#]&`(x))
+W2Tex(x::WTypes) = weval(W"ToString"(W"TeXForm"(x)))
 
 #### Allow latex string to be shown when supported. Relevant for the jupyter notebook.
 
