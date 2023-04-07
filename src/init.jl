@@ -29,20 +29,34 @@ function refcount_dec()
     # refcount zero, all objects finalized, now finalize MathLink
     if Threads.atomic_sub!(REFCOUNT, 1) == 1
         # void WSDeinitialize(WSENV env)
-        ccall((:MLDeinitialize, mlib), Cvoid, (CEnv,), env)
+        ccall((:WSDeinitialize, libwstp), Cvoid, (CEnv,), env)
         env.ptr = C_NULL
     end
 end
 
+
 function __init__()
-    if mlib == ""
-        ###when JULIA_REGISTRYCI_AUTOMERGE=true the mlib is an empty string, and we can test for that
-        # We need to be able to install and load this package without error for
-        # Julia's registry AutoMerge to work. Skip initialization of the mathlink library.
-        @info "Pretending fake installation works"
-    else
+
+    out = IOBuffer()
+    if !success(pipeline(`$(wolfram_app_discovery()) default --raw-value wstp-compiler-additions-directory`, out))
+        @debug "Could not find WSTP installation"
+        return
+    end
+    wstp_dir = String(take!(out))
+
+    if Sys.iswindows()
+        global libwstp = joinpath(wstp_dir, "..", "SystemAdditions", "wstp$(Sys.WORD_SIZE)i4.dll")
+    elseif Sys.isapple()
+        global libwstp = joinpath(wstp_dir, "wstp.framework", "wstp")
+    elseif Sys.isunix()
+        global libwstp = joinpath(wstp_dir, "libWSTP$(Sys.WORD_SIZE)i4.so")
+    end
+
+    @debug "WSTP installation found" wstp_dir libwstp
+
+    if libwstp != ""
         # WSENV WSInitialize(WSEnvironmentParameter p) 
-        env.ptr = ccall((:MLInitialize, mlib), CEnv, (Ptr{Cvoid},), C_NULL)
+        env.ptr = ccall((:WSInitialize, libwstp), CEnv, (Ptr{Cvoid},), C_NULL)
         if env.ptr == C_NULL
             error("Could not initialize MathLink library")
         end

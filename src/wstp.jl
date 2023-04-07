@@ -3,22 +3,22 @@ struct MathLinkError <: Exception
     msg::String
 end
 function MathLinkError(link::Link)
-    err = ccall((:MLError, mlib), Error, (CLink,), link)
-    msg = unsafe_string(ccall((:MLErrorMessage, mlib), Cstring, (CLink,), link))
+    err = ccall((:WSError, libwstp), Error, (CLink,), link)
+    msg = unsafe_string(ccall((:WSErrorMessage, libwstp), Cstring, (CLink,), link))
     clearerror(link)
     newpacket(link)
     MathLinkError(err, msg)
 end
 
 clearerror(link::Link) =
-    ccall((:MLClearError, mlib), Cint, (CLink,), link)
+    ccall((:WSClearError, libwstp), Cint, (CLink,), link)
 endpacket(link::Link) =
-    ccall((:MLEndPacket, mlib), Cint, (CLink,), link)
+    ccall((:WSEndPacket, libwstp), Cint, (CLink,), link)
 newpacket(link::Link) =
-    ccall((:MLNewPacket, mlib), Cint, (CLink,), link)
+    ccall((:WSNewPacket, libwstp), Cint, (CLink,), link)
 
 nextpacket(link::Link) =
-    ccall((:MLNextPacket, mlib), Packet, (CLink,), link)
+    ccall((:WSNextPacket, libwstp), Packet, (CLink,), link)
 
 macro wschk(expr)
     link = expr.args[5] # first argument
@@ -32,7 +32,7 @@ end
 function getargcount(link::Link)
     r = Ref{Cint}()
     # int WSGetArgCount(WSLINK link,int *n)
-    @wschk ccall((:MLGetArgCount, mlib), Cint,
+    @wschk ccall((:WSGetArgCount, libwstp), Cint,
                  (CLink, Ptr{Cint}),
                  link, r)
     r[]
@@ -40,14 +40,14 @@ end
 
 function putargcount(link::Link, n::Integer)
     # int WSPutArgCount(WSLINK link,int n)
-    @wschk ccall((:MLPutArgCount, mlib), Cint,
+    @wschk ccall((:WSPutArgCount, libwstp), Cint,
                  (CLink, Cint),
                  link, n)
     nothing
 end
 function putfunction(link::Link, w::WSymbol, nargs::Integer)
     # int MLPutUTF8Function(( MLLINK l , const unsigned char * s , int v , int n ) 
-    @wschk ccall((:MLPutUTF8Function, mlib), Cint,
+    @wschk ccall((:WSPutUTF8Function, libwstp), Cint,
                  (CLink, Ptr{UInt8}, Cint, Cint),
                  link, w.name, sizeof(w.name), nargs)
     nothing
@@ -57,12 +57,12 @@ function getfunction(link::Link)
     r_bytes = Ref{Cint}()
     r_nargs = Ref{Cint}()
     # int MLGetUTF8Function( MLLINK l , const unsigned char ** s , int * v , int * n )
-    @wschk ccall((:MLGetUTF8Function, mlib), Cint,
+    @wschk ccall((:WSGetUTF8Function, libwstp), Cint,
                  (CLink, Ptr{Ptr{UInt8}}, Ptr{Cint}, Ptr{Cint}),
                  link, r_str, r_bytes, r_nargs)
     str = unsafe_string(r_str[], r_bytes[])
     # void MLReleaseUTF8Symbol(MLLINK link,const unsigned char *s,int len)
-    ccall((:MLReleaseUTF8Symbol, mlib), Cvoid,
+    ccall((:WSReleaseUTF8Symbol, libwstp), Cvoid,
           (CLink, Ptr{UInt8}, Cint),
           link, r_str[], r_bytes[])
     return WSymbol(str), r_nargs[]
@@ -71,7 +71,7 @@ end
 # WSymbol
 function put(link::Link, w::WSymbol)
     # int MLPutUTF8Symbol(MLLINK link,const unsigned char *s,int len)
-    @wschk ccall((:MLPutUTF8Symbol, mlib), Cint,
+    @wschk ccall((:WSPutUTF8Symbol, libwstp), Cint,
                  (CLink, Ptr{UInt8}, Cint),
                  link, w.name, sizeof(w.name))    
     nothing
@@ -81,12 +81,12 @@ function get(link::Link, ::Type{WSymbol})
     r_bytes = Ref{Cint}()
     r_chars = Ref{Cint}()
     # int MLGetUTF8Symbol(MLLINK link,const unsigned char **s,int *b,int *c)
-    @wschk ccall((:MLGetUTF8Symbol, mlib), Cint,
+    @wschk ccall((:WSGetUTF8Symbol, libwstp), Cint,
                  (CLink, Ptr{Ptr{UInt8}}, Ptr{Cint}, Ptr{Cint}),
                  link, r_str, r_bytes, r_chars)
     str = unsafe_string(r_str[], r_bytes[])
     # void MLReleaseUTF8Symbol(MLLINK link,const unsigned char *s,int len)
-    ccall((:MLReleaseUTF8Symbol, mlib), Cvoid,
+    ccall((:WSReleaseUTF8Symbol, libwstp), Cvoid,
           (CLink, Ptr{UInt8}, Cint),
           link, r_str[], r_bytes[])
     return WSymbol(str)
@@ -95,7 +95,7 @@ end
 # WReal/WInteger
 function put(link::Link, w::WReal)
     # int MLPutRealNumberAsUTF8String(MLLINK l, const unsigned char *s, int n)
-    @wschk ccall((:MLPutRealNumberAsUTF8String, mlib), Cint,
+    @wschk ccall((:WSPutRealNumberAsUTF8String, libwstp), Cint,
                  (CLink, Ptr{UInt8}, Cint),
                  link, w.value, sizeof(w.value))    
     nothing
@@ -105,12 +105,12 @@ function get(link::Link, ::Type{W}) where W <: Union{WReal,WInteger}
     r_bytes = Ref{Cint}()
     r_chars = Ref{Cint}()
     # int MLGetNumberAsUTF8String(MLLINK l, const unsigned char **s, int *v, int *c)
-    @wschk ccall((:MLGetNumberAsUTF8String, mlib), Cint,
+    @wschk ccall((:WSGetNumberAsUTF8String, libwstp), Cint,
                  (CLink, Ptr{Ptr{UInt8}}, Ptr{Cint}, Ptr{Cint}),
                  link, r_str, r_bytes, r_chars)
     str = unsafe_string(r_str[], r_bytes[])
     # void MLReleaseUTF8String(MLLINK link,const unsigned char *s,int len)
-    ccall((:MLReleaseUTF8String, mlib), Cvoid,
+    ccall((:WSReleaseUTF8String, libwstp), Cvoid,
           (CLink, Ptr{UInt8}, Cint),
           link, r_str[], r_bytes[])
     return W(str)
@@ -120,7 +120,7 @@ end
 # String
 function put(link::Link, str::Union{String,SubString})
     # int MLPutUTF8String(MLLINK link,const unsigned char *s,int len)
-    @wschk ccall((:MLPutUTF8String, mlib), Cint,
+    @wschk ccall((:WSPutUTF8String, libwstp), Cint,
                  (CLink, Ptr{UInt8}, Cint),
                  link, str, sizeof(str))
     nothing
@@ -130,12 +130,12 @@ function get(link::Link, ::Type{String})
     r_bytes = Ref{Cint}()
     r_chars = Ref{Cint}()
     # int MLGetUTF8String(MLLINK link,const unsigned char **s,int *b,int *c)
-    @wschk ccall((:MLGetUTF8String, mlib), Cint,
+    @wschk ccall((:WSGetUTF8String, libwstp), Cint,
                  (CLink, Ptr{Ptr{UInt8}}, Ptr{Cint}, Ptr{Cint}),
                  link, r_str, r_bytes, r_chars)
     str = unsafe_string(r_str[], r_bytes[])
     # void MLReleaseUTF8String(MLLINK link,const unsigned char *s,int len)
-    ccall((:MLReleaseUTF8String, mlib), Cvoid,
+    ccall((:WSReleaseUTF8String, libwstp), Cvoid,
           (CLink, Ptr{UInt8}, Cint),
           link, r_str[], r_bytes[])
     return str
@@ -152,12 +152,12 @@ for (f, T) in [
     @eval begin
         function put(link::Link, x::$T)
             # note slightly bizarre handling of Float32
-            @wschk ccall(($(QuoteNode(Symbol(:MLPut, f))), mlib), Cint, (CLink, $(f == :Real32 ? Float64 : T)), link, x)
+            @wschk ccall(($(QuoteNode(Symbol(:WSPut, f))), libwstp), Cint, (CLink, $(f == :Real32 ? Float64 : T)), link, x)
             nothing
         end
         function get(link::Link, ::Type{$T})
             r = Ref{$T}()
-            @wschk ccall(($(QuoteNode(Symbol(:MLGet, f))), mlib), Cint, (CLink, Ptr{$T}), link, r)
+            @wschk ccall(($(QuoteNode(Symbol(:WSGet, f))), libwstp), Cint, (CLink, Ptr{$T}), link, r)
             r[]
         end
     end
@@ -167,17 +167,17 @@ end
 
 # Get fns
 gettype(link::Link) =
-    ccall((:MLGetType, mlib), Token, (CLink,), link)
+    ccall((:WSGetType, libwstp), Token, (CLink,), link)
 
 getrawtype(link::Link) =
-    ccall((:MLGetRawType, mlib), Token, (CLink,), link)
+    ccall((:WSGetRawType, libwstp), Token, (CLink,), link)
 
 puttype(link::Link, t::Token) =
-    @wschk ccall((:MLPutType, mlib), Cint, (CLink, Token), link, t)
+    @wschk ccall((:WSPutType, libwstp), Cint, (CLink, Token), link, t)
 
 getnext(link::Link) =
-    ccall((:MLGetNext, mlib), Token, (CLink,), link)
+    ccall((:WSGetNext, libwstp), Token, (CLink,), link)
 
 getnextraw(link::Link) =
-    ccall((:MLGetNextRaw, mlib), Token, (CLink,), link)
+    ccall((:WSGetNextRaw, libwstp), Token, (CLink,), link)
 
