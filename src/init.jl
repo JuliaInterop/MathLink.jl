@@ -49,7 +49,7 @@ function __init__()
     elseif Sys.isapple()
         global libwstp = joinpath(wstp_dir, "wstp.framework", "wstp")
     elseif Sys.isunix()
-        global libwstp = joinpath(wstp_dir, "CompilerAdditions", "libWSTP$(Sys.WORD_SIZE)i4.so")
+        global libwstp = joinpath(wstp_dir, "libWSTP$(Sys.WORD_SIZE)i4.so")
     end
 
     @info "WSTP installation found" wstp_dir libwstp
