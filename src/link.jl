@@ -19,10 +19,13 @@ const defaultlink = Link(C_NULL)
 
 # we define an in-place version to operate on defaultlink
 function open!(link::Link, args::AbstractString)
+    if env.ptr == C_NULL
+        error("WSTP library not found, set WOLFRAM_APP_DIRECTORY environment variable")
+    end
     # MLOpenString
     # local link
     err = Ref{Cint}()
-    ptr = ccall((:MLOpenString, mlib), CLink,
+    ptr = ccall((:WSOpenString, libwstp), CLink,
                  (Env, Cstring, Ptr{Cint}),
                  env, args, err)
     if err[] != 0
@@ -36,10 +39,13 @@ function open!(link::Link, args::AbstractString)
 end
 
 function open!(link::Link, args::Vector)
+    if env.ptr == C_NULL
+        error("WSTP library not found, set WOLFRAM_APP_DIRECTORY environment variable")
+    end
     # MLOpenString
     # local link
     err = Ref{Cint}()
-    ptr = ccall((:MLOpenArgcArgv, mlib), CLink,
+    ptr = ccall((:WSOpenArgcArgv, libwstp), CLink,
                  (Env, Cint, Ptr{Cstring}, Ptr{Cint}),
                  env, length(args), args, err)
     if err[] != 0
@@ -56,7 +62,7 @@ open(args::AbstractString) = open!(Link(C_NULL), args)
 
 function Base.close(link::Link)
     if link.ptr != C_NULL
-        ccall((:MLClose, mlib), Cvoid, (CLink,), link)
+        ccall((:WSClose, libwstp), Cvoid, (CLink,), link)
         link.ptr = C_NULL
         refcount_dec()
     end
@@ -64,17 +70,17 @@ end
 
 function getname(link::Link)
     # WSLINK WSGetLinkName(WSLINK link)
-    ptr = ccall((:MLUTF8LinkName, mlib), Cstring, (CLink,), link)
+    ptr = ccall((:WSUTF8LinkName, libwstp), Cstring, (CLink,), link)
     ptr == C_NULL && throw(MathLinkError(link))
     str = unsafe_string(ptr)
-    ccall((:MLReleaseUTF8LinkName, mlib), Cvoid, (CLink,Cstring), link, ptr)
+    ccall((:WSReleaseUTF8LinkName, libwstp), Cvoid, (CLink,Cstring), link, ptr)
     return str
 end
 
 function duplicate(link::Link, name::AbstractString)
     # WSLINK WSDuplicateLink(WSLINK link, int *errp)
     err = Ref{Cint}()
-    ptr = ccall((:MLDuplicateLink, mlib), CLink, (CLink, Cstring, Ptr{Cint}), link, name, err)
+    ptr = ccall((:WSDuplicateLink, libwstp), CLink, (CLink, Cstring, Ptr{Cint}), link, name, err)
     if err[] != 0
         throw(MathLinkError(link))
     end
@@ -84,12 +90,23 @@ function duplicate(link::Link, name::AbstractString)
     return newlink
 end
 
+"""
+    local_kernel_path()
+
+The path to the local kernel. This is used to launch a link to the kernel.
+"""
+function local_kernel_path()
+    read(`$(wolfram_app_discovery()) default --raw-value kernel-executable-path`, String)
+end
+
+
 
 function _defaultlink()
     if defaultlink.ptr == C_NULL
+        kernel = local_kernel_path()
         args = [
             "-linkname",
-            "\"$mker\" -mathlink",
+            "\"$(escape_string(kernel))\" -wstp",
             "-linkmode",
             "launch",
         ]
@@ -113,7 +130,7 @@ Base.cconvert(::Type{CMark}, mark::Mark) = mark.ptr
 # we don't overload Base.mark as it has different behaviour
 function Mark(link::Link)
     # WSMARK WSCreateMark(WSLINK link)
-    ptr = ccall((:MLCreateMark, mlib), Ptr{Cvoid}, (CLink,), link)
+    ptr = ccall((:WSCreateMark, libwstp), Ptr{Cvoid}, (CLink,), link)
     ptr == C_NULL && throw(MathLinkError(link))
     mark = Mark(link, ptr)
     refcount_inc()
@@ -123,7 +140,7 @@ end
 
 function Base.seek(link::Link, mark::Mark, offset::Integer=Cint(0))
     # WSMARK WSSeekToMark(WSLINK link,WSMARK mark,int n)
-    ptr = ccall((:MLSeekToMark, mlib), Ptr{Cvoid},
+    ptr = ccall((:WSSeekToMark, libwstp), Ptr{Cvoid},
                 (CLink, CMark, Cint), link, mark, offset)
     ptr == C_NULL && throw(MathLinkError(link))
     return nothing
@@ -132,7 +149,7 @@ end
 function Base.close(mark::Mark)
     if mark.ptr != C_NULL
         # void WSDestroyMark(WSLINK link,WSMARK mark)
-        ccall((:MLDestroyMark, mlib), Cvoid,
+        ccall((:WSDestroyMark, libwstp), Cvoid,
               (CLink, CMark), mark.link, mark)
         mark.ptr = C_NULL
         refcount_dec()
