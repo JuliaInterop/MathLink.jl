@@ -6,9 +6,9 @@ This package provides access to Mathematica/Wolfram Engine via the MathLink libr
 
 ## Installation
 
-The package requires an installation of either [Mathematica](http://www.wolfram.com/mathematica/) or the free [Wolfram Engine](https://www.wolfram.com/engine/). It will attempt to find the installation at build time; if this fails, please see the [installation troubleshoot](#installation-troubleshoot) below.
- 
- 
+The package requires an installation of either [Mathematica](http://www.wolfram.com/mathematica/) or the free [Wolfram Engine](https://www.wolfram.com/engine/). It will attempt to find the installation at load time using [wolfram-app-discovery](https://github.com/WolframResearch/wolfram-app-discovery-rs). A precise location can be specied by setting the `WOLFRAM_APP_DIRECTORY` environment variable.
+
+
 ## Usage
 
 The main interface consists of the `W""` string macro for specifying symbols. These are call-overloaded for building more complicated expressions. 
@@ -165,42 +165,6 @@ julia> W2Mstr(W`b/(c^(a+c))`)
 ## LateX printing in JuPyter Notebooks
 Printing in Jupyter notebooks is, by default, done in latex.
 This can be turned off with the command `MathLink.set_texOutput(false)`
-
-## Installation Troubleshoot
-The package requires an installation of either [Mathematica](http://www.wolfram.com/mathematica/) or the free [Wolfram Engine](https://www.wolfram.com/engine/). It will attempt to find the installation at build time; if this fails, you will need to set the following environment variables:
-- `JULIA_MATHKERNEL`: the path of the MathKernel executable
-- `JULIA_MATHLINK`: the path of the MathLink dynamic library named
-  - `libML64i4.so`/ `libML32i4.so` on Linux
-  - `ml64i4.dll`/`ml32i4.dll`/`libML64.dll`/ `libML32.dll` on Windows
-
-After setting, you may need to manually build the package
-```julia
-(@v1.X) pkg> build MathLink
-```
- 
-A separate workaround is to directly edit the deps/deps.jl file, which should be located (on Linux) at `~/.julia/packages/MathLink/<version dependent>/deps/deps.jl`
- 
-The contents of `deps.jl` could for instance, read
-```julia
-const mlib = "/usr/local/Wolfram/Mathematica/11.3/SystemFiles/Links/MathLink/DeveloperKit/Linux-x86-64/CompilerAdditions/libML64i4"
-const mker = "WolframKernel"
-```
-After creating the file `deps.jl` try loading MathLink the usual way
-```julia
-(@v1.X) pkg> using MathLink
-```
-If you do not have a Mathematica installation at all, the above trick still works, but then you must leave the path blank 
-```julia
-const mlib = ""
-const mker = "WolframKernel"
-```
-Loading `MathLink` then proclaims
-```julia
-julia> using MathLink
-[ Info: Precompiling MathLink [18c93696-a329-5786-9845-8443133fa0b4]
-[ Info: Pretending fake installation works
-```
-
 
 ## Notes
 
