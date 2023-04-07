@@ -47,6 +47,7 @@ jobs:
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
       - run: mdfind "kMDItemCFBundleIdentifier == 'com.wolfram.*'"
+      - run: mdls "/Applications/Wolfram Engine.app"
       - run: julia --project -e 'using WolframAppDiscovery_jll; run(`$(wolfram_app_discovery()) default`)'
       - uses: julia-actions/julia-runtest@v1
         env:
