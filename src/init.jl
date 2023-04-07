@@ -52,7 +52,7 @@ function __init__()
         global libwstp = joinpath(wstp_dir, "libWSTP$(Sys.WORD_SIZE)i4.so")
     end
 
-    @info "WSTP installation found" wstp_dir libwstp
+    @debug "WSTP installation found" wstp_dir libwstp
 
     if libwstp != ""
         # WSENV WSInitialize(WSEnvironmentParameter p) 
