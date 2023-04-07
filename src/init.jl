@@ -45,7 +45,7 @@ function __init__()
     wstp_dir = String(take!(out))
 
     if Sys.iswindows()
-        global libwstp = joinpath(wstp_dir, "SystemAdditions", "wstp$(Sys.WORD_SIZE)i4.dll")
+        global libwstp = joinpath(wstp_dir, "wstp$(Sys.WORD_SIZE)i4.dll")
     elseif Sys.isapple()
         global libwstp = joinpath(wstp_dir, "wstp.framework", "wstp")
     elseif Sys.isunix()
