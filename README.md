@@ -167,7 +167,7 @@ Printing in Jupyter notebooks is, by default, done in latex.
 This can be turned off with the command `MathLink.set_texOutput(false)`
 
 ## Installation Troubleshoot
-The package requires an installation of either [Mathematica](http://www.wolfram.com/mathematica/) or the free [Wolfram Engine](https://www.wolfram.com/engine/). It will attempt to find the installation at build time; if this fails, you will need to set the following environment variables:
+The package requires an installation of either [Mathematica](http://www.wolfram.com/mathematica/) or the free [Wolfram Engine](https://www.wolfram.com/engine/). It will attempt to find the installation at build time; if this fails, you will need to set the following [environment variables](https://docs.julialang.org/en/v1/manual/environment-variables/):
 - `JULIA_MATHKERNEL`: the path of the MathKernel executable
 - `JULIA_MATHLINK`: the path of the MathLink dynamic library named
   - `libML64i4.so`/ `libML32i4.so` on Linux
