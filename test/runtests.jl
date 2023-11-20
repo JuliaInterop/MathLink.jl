@@ -15,6 +15,12 @@ import MathLink: WExpr, WSymbol
     @testset "Association to Dict" begin
         @test W2Julia(W`Association["team" -> "HOU", "lastName" -> "Ching"]`) == Dict( "team" => "HOU" , "lastName" => "Ching")
     end
+    @testset "Association and List Dict" begin
+        @test W2Julia(W`Association["team" -> {1,2,3}, "lastName" -> "Ching"]`) == Dict( "team" => [1,2,3] , "lastName" => "Ching")
+        @test W2Julia(W`{1,Association["team" -> {1,2,3}, "lastName" -> "Ching"]}`) == [1,Dict( "team" => [1,2,3] , "lastName" => "Ching")]
+
+    end
+
 end
 
 
