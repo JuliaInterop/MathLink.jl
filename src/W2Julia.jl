@@ -3,10 +3,11 @@
 export W2Julia
 
 W2Julia(X::Number) = X
+W2Julia(X::String) = X
 W2Julia(X::MathLink.WSymbol) = X
 function W2Julia(X::MathLink.WExpr)
     if X.head == W"List"
-        return [W2Julia(x) for x in X.args]
+        return W2Julia.(X.args)
     elseif X.head == W"Association"
         W2JuliaAccociation(X)
     else
@@ -31,7 +32,7 @@ function W2JuliaAccociation(Asso::MathLink.WExpr)
         if length(Rule.args) != 2
             error("Bad rule")
         end
-        D[Rule.args[1]]=Rule.args[2]
+        D[Rule.args[1]]=W2Julia(Rule.args[2])
     end
     return D
 end
