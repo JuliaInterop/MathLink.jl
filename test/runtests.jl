@@ -4,6 +4,19 @@ using Test
 import MathLink: WExpr, WSymbol
 
 
+@testset "W2Julia" begin
+    ###Test of a simple MathLink to Julia converter. It converts MathLink expressions to the correcsponding Julia constructions
+
+    @testset "Lists to Lists" begin
+        @test W2Julia(W`{1,2,3}`) == [1,2,3]
+        @test W2Julia(W`{1,a,3}`) == [1,W"a",3]
+        @test W2Julia(W`{1,a,{1,2}}`) == [1,W"a",[1,2]]
+    end
+    @testset "Association to Dict" begin
+        @test W2Julia(W`Association["team" -> "HOU", "lastName" -> "Ching"]`) == Dict( "team" => "HOU" , "lastName" => "Ching")
+    end
+end
+
 
 @testset "W2Mstr" begin
     ###Test of a naive MathLink to Mathematica converter function (the results can be copied into mathematica directly)
