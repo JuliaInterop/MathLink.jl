@@ -2,6 +2,17 @@
 
 export W2Julia
 
+W2Julia(X::Vector) = [ W2Julia(x) for x in X]
+function W2Julia(X::Dict)
+    NewDict = Dict()
+    for key in keys(X)
+        NewDict[key] = W2Julia(X[key])
+    end
+    return NewDict
+end
+
+
+
 W2Julia(X::Number) = X
 W2Julia(X::String) = X
 W2Julia(X::MathLink.WSymbol) = X

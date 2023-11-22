@@ -9,10 +9,16 @@ import MathLink: WExpr, WSymbol
 
     @testset "Lists to Lists" begin
         @test W2Julia(W`{1,2,3}`) == [1,2,3]
+        @test W2Julia([1,2,3]) == [1,2,3]
+        @test W2Julia([1,2.2,3]) == [1,2.2,3]
         @test W2Julia(W`{1,a,3}`) == [1,W"a",3]
         @test W2Julia(W`{1,a,{1,2}}`) == [1,W"a",[1,2]]
+        @test W2Julia([.1,W`{1,a,3}`]) == [.1,[1,W"a",3]]
+
     end
     @testset "Association to Dict" begin
+        @test W2Julia(Dict( 1 => "A" , "B" => 2)) ==Dict( 1 => "A" , "B" => 2)
+        
         @test W2Julia(W`Association["team" -> "HOU", "lastName" -> "Ching"]`) == Dict( "team" => "HOU" , "lastName" => "Ching")
     end
     @testset "Association and List Dict" begin
