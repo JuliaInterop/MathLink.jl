@@ -8,7 +8,7 @@ export @W_str, @W_cmd, weval
 ###Checking that the deps.jl file exists. And throwing a readable error if it does not!
 
 FilePath=@__DIR__
-FilePath=FilePath[1:end-4]*"/deps/deps.jl"
+FilePath=joinpath(FilePath[1:end-4], "deps", "deps.jl")
 
 
 #if isfile("../deps/deps.jl")
