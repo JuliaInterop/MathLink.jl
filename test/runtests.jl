@@ -6,7 +6,6 @@ import MathLink: WExpr, WSymbol
 
 @testset "W2Julia" begin
     ###Test of a simple MathLink to Julia converter. It converts MathLink expressions to the correcsponding Julia constructions
-
     @testset "Lists to Lists" begin
         @test W2Julia(W`{1,2,3}`) == [1,2,3]
         @test W2Julia([1,2,3]) == [1,2,3]
@@ -19,10 +18,14 @@ import MathLink: WExpr, WSymbol
     @testset "Association to Dict" begin
         @test W2Julia(Dict( 1 => "A" , "B" => 2)) ==Dict( 1 => "A" , "B" => 2)
         
-        @test W2Julia(W`Association["team" -> "HOU", "lastName" -> "Ching"]`) == Dict( "team" => "HOU" , "lastName" => "Ching")
+        @test W2Julia(W`Association["A" -> "B", "C" -> "D"]`) == Dict( "A" => "B" , "C" => "D")
     end
     @testset "Association and List Dict" begin
-        @test W2Julia(W`Association["team" -> {1,2,3}, "lastName" -> "Ching"]`) == Dict( "team" => [1,2,3] , "lastName" => "Ching")
+        @test W2Julia(W`Association["A" -> {1,2,3}, "B" -> "C"]`) == Dict( "A" => [1,2,3] , "B" => "C")
+
+        @test W2Julia(W`Association["A" -> {1,a,3}, "B" -> "C"]`) == Dict( "A" => [1,W"a",3] , "B" => "C")
+
+        
         @test W2Julia(W`{1,Association["team" -> {1,2,3}, "lastName" -> "Ching"]}`) == [1,Dict( "team" => [1,2,3] , "lastName" => "Ching")]
 
     end
