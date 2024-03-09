@@ -169,7 +169,7 @@ W2Julia is designed primarily to convert wolfram structures to Julia structures.
 
 Some examples or tests that will evaluate to true:
 
-```
+```julia
 using Test
 @test W2Julia(W`{1,2,3}`) == [1,2,3]
 @test W2Julia([1,2,3]) == [1,2,3]
