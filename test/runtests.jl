@@ -4,29 +4,49 @@ using Test
 import MathLink: WExpr, WSymbol
 
 
-@testset "W2Julia" begin
+@testset "W2JuliaExpr" begin
+    ###Test of a simple MathLink to Julia converter. It converts MathLink expressions to the correcsponding Julia constructions
+    @testset "Variables" begin
+        @test W2JuliaExpr(W"a") == :a
+        @test W2JuliaExpr(W`a`) == :a
+        @test W2JuliaExpr(W"a"+W"b") == :(a+b)
+        @test W2JuliaExpr(W`sin`) == :sin
+        @test W2JuliaExpr(W`a+b`) == :(a+b)
+        @test W2JuliaExpr(W`a*b`) == :(a*b)
+        @test W2JuliaExpr(W`Sin[a]`) == :(sin(a))
+        @test W2JuliaExpr(W`Sin[a+b]`) == :(sin(a+b))
+        @test W2JuliaExpr(W`Cos[a^b]`) == :(cos(a^b))
+        @test W2JuliaExpr(W`a/b`) == :(a*(b^-1))
+        @test W2JuliaExpr(W`a^b`) == :(a^b)
+        @test W2JuliaExpr(W`Exp[a]`) == :(exp(a))
+    end
+end
+
+
+
+@testset "W2JuliaStruct" begin
     ###Test of a simple MathLink to Julia converter. It converts MathLink expressions to the correcsponding Julia constructions
     @testset "Lists to Lists" begin
-        @test W2Julia(W`{1,2,3}`) == [1,2,3]
-        @test W2Julia([1,2,3]) == [1,2,3]
-        @test W2Julia([1,2.2,3]) == [1,2.2,3]
-        @test W2Julia(W`{1,a,3}`) == [1,W"a",3]
-        @test W2Julia(W`{1,a,{1,2}}`) == [1,W"a",[1,2]]
-        @test W2Julia([.1,W`{1,a,3}`]) == [.1,[1,W"a",3]]
+        @test W2JuliaStruct(W`{1,2,3}`) == [1,2,3]
+        @test W2JuliaStruct([1,2,3]) == [1,2,3]
+        @test W2JuliaStruct([1,2.2,3]) == [1,2.2,3]
+        @test W2JuliaStruct(W`{1,a,3}`) == [1,W"a",3]
+        @test W2JuliaStruct(W`{1,a,{1,2}}`) == [1,W"a",[1,2]]
+        @test W2JuliaStruct([.1,W`{1,a,3}`]) == [.1,[1,W"a",3]]
 
     end
     @testset "Association to Dict" begin
-        @test W2Julia(Dict( 1 => "A" , "B" => 2)) ==Dict( 1 => "A" , "B" => 2)
+        @test W2JuliaStruct(Dict( 1 => "A" , "B" => 2)) ==Dict( 1 => "A" , "B" => 2)
         
-        @test W2Julia(W`Association["A" -> "B", "C" -> "D"]`) == Dict( "A" => "B" , "C" => "D")
+        @test W2JuliaStruct(W`Association["A" -> "B", "C" -> "D"]`) == Dict( "A" => "B" , "C" => "D")
     end
     @testset "Association and List Dict" begin
-        @test W2Julia(W`Association["A" -> {1,2,3}, "B" -> "C"]`) == Dict( "A" => [1,2,3] , "B" => "C")
+        @test W2JuliaStruct(W`Association["A" -> {1,2,3}, "B" -> "C"]`) == Dict( "A" => [1,2,3] , "B" => "C")
 
-        @test W2Julia(W`Association["A" -> {1,a,3}, "B" -> "C"]`) == Dict( "A" => [1,W"a",3] , "B" => "C")
+        @test W2JuliaStruct(W`Association["A" -> {1,a,3}, "B" -> "C"]`) == Dict( "A" => [1,W"a",3] , "B" => "C")
 
         
-        @test W2Julia(W`{1,Association["team" -> {1,2,3}, "lastName" -> "Ching"]}`) == [1,Dict( "team" => [1,2,3] , "lastName" => "Ching")]
+        @test W2JuliaStruct(W`{1,Association["team" -> {1,2,3}, "lastName" -> "Ching"]}`) == [1,Dict( "team" => [1,2,3] , "lastName" => "Ching")]
 
     end
 

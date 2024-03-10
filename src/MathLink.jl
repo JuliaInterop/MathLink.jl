@@ -29,5 +29,6 @@ include("extras.jl")
 include("eval.jl")
 include("display.jl")
 include("operators.jl")
-include("W2Julia.jl")
+include("W2JuliaStruct.jl")
+include("W2JuliaExpr.jl")
 end
