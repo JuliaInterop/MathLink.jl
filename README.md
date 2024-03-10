@@ -164,27 +164,27 @@ julia> W2Mstr(W`b/(c^(a+c))`)
 
 
 
-## W2Julia - Conversion to Julia structures
-W2Julia is designed primarily to convert wolfram structures to Julia structures. This includes conversions of Mathematica lists to Julia vectors and Mathematica associations to Julia dictionaries.
+## W2JuliaStruct - Conversion to Julia structures
+`W2JuliaStruct` is designed primarily to convert wolfram structures to Julia structures. This includes conversions of Mathematica lists to Julia vectors and Mathematica associations to Julia dictionaries.
 
 Some examples or tests that will evaluate to true:
 
 ```julia
 using Test
-@test W2Julia(W`{1,2,3}`) == [1,2,3]
-@test W2Julia([1,2,3]) == [1,2,3]
-@test W2Julia(W`{1,2,3}`) == [1,2,3]
-@test W2Julia(W`{1,a,{1,2}}`) == [1,W"a",[1,2]]
-@test W2Julia([.1,W`{1,a,3}`]) == [.1,[1,W"a",3]]
+@test W2JuliaStruct(W`{1,2,3}`) == [1,2,3]
+@test W2JuliaStruct([1,2,3]) == [1,2,3]
+@test W2JuliaStruct(W`{1,2,3}`) == [1,2,3]
+@test W2JuliaStruct(W`{1,a,{1,2}}`) == [1,W"a",[1,2]]
+@test W2JuliaStruct([.1,W`{1,a,3}`]) == [.1,[1,W"a",3]]
 
-@test W2Julia(Dict( 1 => "A" , "B" => 2)) ==Dict( 1 => "A" , "B" => 2)
+@test W2JuliaStruct(Dict( 1 => "A" , "B" => 2)) ==Dict( 1 => "A" , "B" => 2)
 
-@test W2Julia(W`Association["A" -> "B", "C" -> "D"]`) == Dict( "A" => "B" , "C" => "D")
+@test W2JuliaStruct(W`Association["A" -> "B", "C" -> "D"]`) == Dict( "A" => "B" , "C" => "D")
 
-@test W2Julia(W`Association["A" -> {1,a,3}, "B" -> "C"]`) == Dict( "A" => [1,W"a",3] , "B" => "C")
+@test W2JuliaStruct(W`Association["A" -> {1,a,3}, "B" -> "C"]`) == Dict( "A" => [1,W"a",3] , "B" => "C")
 ```
 
-W2Julia does not convert expressions to Julia functions, as not all functions will be able to evaluate when WSymbols are present.
+`W2JuliaStruct` does not convert expressions to Julia functions, as not all functions will be able to evaluate when WSymbols are present.
 
 
 ## LateX printing in JuPyter Notebooks
