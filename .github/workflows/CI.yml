@@ -43,7 +43,7 @@ jobs:
           brew install --cask wolfram-engine
           echo 'Installed Wolfram Engine.'
       - name: "Check Wolfram Engine installation"
-        run: '"/Applications/Wolfram Engine.app/Contents/MacOS/WolframKerne" -version'
+        run: '"/Applications/Wolfram Engine.app/Contents/MacOS/WolframKernel" -version'
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
@@ -105,6 +105,7 @@ jobs:
 
       - name: "Check Wolfram Engine installation"
         run: '"${{ env.WOLFRAMENGINE_INSTALLATION_DIRECTORY }}\WolframKernel" -version'
+        shell: cmd
         env:
           WOLFRAMENGINE_INSTALLATION_DIRECTORY: '${{ runner.temp }}\${{ env.WOLFRAMENGINE_INSTALLATION_SUBDIRECTORY }}'
 
