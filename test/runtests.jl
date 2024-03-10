@@ -18,6 +18,7 @@ import MathLink: WExpr, WSymbol
         @test W2JuliaExpr(W`Cos[a^b]`) == :(cos(a^b))
         @test W2JuliaExpr(W`a/b`) == :(a*(b^-1))
         @test W2JuliaExpr(W`a^b`) == :(a^b)
+        @test W2JuliaExpr(W`Exp[a]`) == :(exp(a))
     end
 end
 

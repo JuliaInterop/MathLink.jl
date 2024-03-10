@@ -8,9 +8,11 @@ Converts MathLink `WExpr`essions to Julia `Expr`essions
 function W2JuliaExpr(wexpr::WExpr)
     ####Check if the operator has an alias
     if haskey(funcDict, wexpr.head.name)
+        ####Use the alias
         Operator=funcDict[wexpr.head.name]
     else
-        Operator=Symbol(wexpr.head.name)
+        ####Use the name directly as a symbol (but in lowercase)
+        Operator=Symbol(lowercase(wexpr.head.name))
     end
     return Expr(:call,Operator,[W2JuliaExpr(arg) for arg in wexpr.args]...)
 end
@@ -23,6 +25,4 @@ funcDict=Dict("Plus"=>:+,
               "Minus"=>:-,
               "Power"=>:^,
               "Times"=>:*,
-              "Sin"=>:sin,
-              "Cos"=>:cos,
               )
