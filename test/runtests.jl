@@ -20,6 +20,19 @@ import MathLink: WExpr, WSymbol
         @test W2JuliaExpr(W`a^b`) == :(a^b)
         @test W2JuliaExpr(W`Exp[a]`) == :(exp(a))
     end
+
+    @testset "To function" begin
+        ex = W2JuliaExpr(W`a+b`)
+        fun = @eval (a,b) -> $ex
+        @test fun(1,2)  == (1 + 2)
+        @test fun(5,6)  == (5 + 6)
+
+
+        ex = W2JuliaExpr(W`Sin[a]`)
+        fun = @eval (a) -> $ex
+        @test fun(0)  == sin(0)
+        @test fun(1)  == sin(1)
+    end    
 end
 
 
