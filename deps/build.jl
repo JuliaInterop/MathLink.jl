@@ -93,6 +93,8 @@ function find_lib_ker()
     error("Could not find Mathematica or Wolfram Engine installation.\nPlease set the `JULIA_MATHLINK` and `JULIA_MATHKERNEL` variables.")
 end
 
+@info "The JULIA_PKG_SERVER_REGISTRY_PREFERENCE variable" 
+@info get(ENV, "JULIA_PKG_SERVER_REGISTRY_PREFERENCE", "false")
 
 if get(ENV, "JULIA_REGISTRYCI_AUTOMERGE", "false") == "true"
     # We need to be able to install and load this package without error for
@@ -100,12 +102,12 @@ if get(ENV, "JULIA_REGISTRYCI_AUTOMERGE", "false") == "true"
     mlib = ""
     mker = "WolframKernel"
     @info "Pretending fake installation exists" mlib mker
-elseif get(ENV, "ULIA_PKG_SERVER_REGISTRY_PREFERENCE", "false") != "false"
+elseif get(ENV, "JULIA_PKG_SERVER_REGISTRY_PREFERENCE", "false") != "false"
     # We need to be able to install and load this package without error for
     # Githubs CI checker to work. Just write a fake Mathematica path.
     mlib = ""
     mker = "WolframKernel"
-    @info "Pretending fake installation exists" mlib mker
+    @info "Pretending fake Github CI installation exists" mlib mker
 else
     mlib,mker = find_lib_ker()
     @info "Installation found" mlib mker
