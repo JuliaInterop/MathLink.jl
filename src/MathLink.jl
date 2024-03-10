@@ -30,4 +30,5 @@ include("eval.jl")
 include("display.jl")
 include("operators.jl")
 include("W2JuliaStruct.jl")
+include("W2JuliaExpr.jl")
 end

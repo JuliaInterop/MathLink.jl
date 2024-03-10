@@ -4,6 +4,25 @@ using Test
 import MathLink: WExpr, WSymbol
 
 
+@testset "W2JuliaExpr" begin
+    ###Test of a simple MathLink to Julia converter. It converts MathLink expressions to the correcsponding Julia constructions
+    @testset "Variables" begin
+        @test W2JuliaExpr(W"a") == :a
+        @test W2JuliaExpr(W`a`) == :a
+        @test W2JuliaExpr(W"a"+W"b") == :(a+b)
+        @test W2JuliaExpr(W`sin`) == :sin
+        @test W2JuliaExpr(W`a+b`) == :(a+b)
+        @test W2JuliaExpr(W`a*b`) == :(a*b)
+        @test W2JuliaExpr(W`Sin[a]`) == :(sin(a))
+        @test W2JuliaExpr(W`Sin[a+b]`) == :(sin(a+b))
+        @test W2JuliaExpr(W`Cos[a^b]`) == :(cos(a^b))
+        @test W2JuliaExpr(W`a/b`) == :(a*(b^-1))
+        @test W2JuliaExpr(W`a^b`) == :(a^b)
+    end
+end
+
+
+
 @testset "W2JuliaStruct" begin
     ###Test of a simple MathLink to Julia converter. It converts MathLink expressions to the correcsponding Julia constructions
     @testset "Lists to Lists" begin
