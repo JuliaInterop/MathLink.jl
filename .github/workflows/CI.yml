@@ -16,6 +16,8 @@ jobs:
       WOLFRAMINIT:  -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile !cloudlm.wolfram.com
     steps:
       - uses: actions/checkout@v2
+      - name: "Check Wolfram Engine installation"
+        run: WolframKernel -version
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
@@ -40,7 +42,9 @@ jobs:
           echo 'Installing Wolfram Engine...'
           brew install --cask wolfram-engine
           echo 'Installed Wolfram Engine.'
-
+      - name: "Check Wolfram Engine installation"
+        run: WolframKernel -version
+  
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
@@ -99,6 +103,12 @@ jobs:
           echo 'Installing Wolfram Engine...'
           Start-Process "msiexec.exe" -ArgumentList $MSIArguments -Wait -NoNewWindow
           echo 'Installed Wolfram Engine.'
+
+      - name: "Check Wolfram Engine installation"
+        run: ${{ env.WOLFRAMENGINE_INSTALLATION_DIRECTORY }}\WolframKernel -version
+        env:
+          JULIA_WOLFRAM_DIR: '${{ runner.temp }}\${{ env.WOLFRAMENGINE_INSTALLATION_SUBDIRECTORY }}'  
+
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
