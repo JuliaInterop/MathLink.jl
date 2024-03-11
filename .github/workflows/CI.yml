@@ -104,8 +104,7 @@ jobs:
           echo 'Installed Wolfram Engine.'
 
       - name: "Check Wolfram Engine installation"
-        run: '"${{ env.WOLFRAMENGINE_INSTALLATION_DIRECTORY }}\WolframKernel" -version'
-        shell: cmd
+        run: Start-Process "${{ env.WOLFRAMENGINE_INSTALLATION_DIRECTORY }}\WolframKernel" -ArgumentList '-version' -Wait -NoNewWindow
         env:
           WOLFRAMENGINE_INSTALLATION_DIRECTORY: '${{ runner.temp }}\${{ env.WOLFRAMENGINE_INSTALLATION_SUBDIRECTORY }}'
 
