@@ -50,7 +50,7 @@ jobs:
           echo 'Installed Wolfram Engine.'
 
       - name: "Set PATH"
-        run: echo "${{ WOLFRAMENGINE_EXECUTABLE_DIRECTORY }}" >> $GITHUB_PATH
+        run: echo "${{ env.WOLFRAMENGINE_EXECUTABLE_DIRECTORY }}" >> $GITHUB_PATH
 
       - name: "Test shell"
         run: |
