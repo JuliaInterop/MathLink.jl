@@ -36,6 +36,7 @@ jobs:
     runs-on: macos-latest
     env:
       WOLFRAMINIT:  -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile !cloudlm.wolfram.com
+      WOLFRAMENGINE_EXECUTABLE_DIRECTORY: /Applications/Wolfram Engine.app/Contents/Resources/Wolfram Player.app/Contents/MacOS
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
@@ -53,7 +54,7 @@ jobs:
         run: |
           Print["Version: ", $Version]
           Print["License expiration: ", $LicenseExpirationDate]
-        shell: WolframKernel -noicon -script {0}
+        shell: ${{ WOLFRAMENGINE_EXECUTABLE_DIRECTORY }}/WolframKernel -noicon -script {0}
 
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
@@ -114,16 +115,11 @@ jobs:
           Start-Process "msiexec.exe" -ArgumentList $MSIArguments -Wait -NoNewWindow
           echo 'Installed Wolfram Engine.'
 
-      - name: "Check Wolfram Engine installation"
-        run: Start-Process "${{ env.WOLFRAMENGINE_INSTALLATION_DIRECTORY }}\WolframKernel" -ArgumentList '-version' -Wait -NoNewWindow
-        env:
-          WOLFRAMENGINE_INSTALLATION_DIRECTORY: '${{ runner.temp }}\${{ env.WOLFRAMENGINE_INSTALLATION_SUBDIRECTORY }}'
-
       - name: "Test shell"
         run: |
           Print["Version: ", $Version]
           Print["License expiration: ", $LicenseExpirationDate]
-        shell: WolframKernel -noicon -script {0}
+        shell: ${{ runner.temp }}/${{ env.WOLFRAMENGINE_INSTALLATION_SUBDIRECTORY }}/WolframKernel -noicon -script {0}
   
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
