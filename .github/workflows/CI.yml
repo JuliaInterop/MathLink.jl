@@ -22,7 +22,7 @@ jobs:
         run: |
           Print["Version: ", $Version]
           Print["License expiration: ", $LicenseExpirationDate]
-        shell: WolframKernel -noicon -script {0}
+        shell: WolframKernel -script {0}
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
@@ -56,7 +56,7 @@ jobs:
         run: |
           Print["Version: ", $Version]
           Print["License expiration: ", $LicenseExpirationDate]
-        shell: WolframKernel -noicon -script {0}
+        shell: WolframKernel -script {0}
 
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
@@ -126,7 +126,7 @@ jobs:
         run: |
           Print["Version: ", $Version]
           Print["License expiration: ", $LicenseExpirationDate]
-        shell: WolframKernel -noicon -script {0}
+        shell: WolframKernel -script {0}
   
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
