@@ -20,9 +20,9 @@ jobs:
         run: WolframKernel -version
       - name: "Test shell"
         run: |
-          $Version
-          $LicenseExpirationDate
-        shell: WolframKernel
+          Print["Version: ", $Version]
+          Print["License expiration: ", $LicenseExpirationDate]
+        shell: wolfram -script {0}
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
@@ -51,9 +51,9 @@ jobs:
         run: '"/Applications/Wolfram Engine.app/Contents/MacOS/WolframKernel" -version'
       - name: "Test shell"
         run: |
-          $Version
-          $LicenseExpirationDate
-        shell: WolframKernel
+          Print["Version: ", $Version]
+          Print["License expiration: ", $LicenseExpirationDate]
+        shell: wolfram -script {0}
 
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
@@ -121,9 +121,9 @@ jobs:
 
       - name: "Test shell"
         run: |
-          $Version
-          $LicenseExpirationDate
-        shell: WolframKernel
+          Print["Version: ", $Version]
+          Print["License expiration: ", $LicenseExpirationDate]
+        shell: wolfram -script {0}
   
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
