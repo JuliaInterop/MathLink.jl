@@ -126,7 +126,7 @@ jobs:
         run: |
           Print["Version: ", $Version]
           Print["License expiration: ", $LicenseExpirationDate]
-        shell: WolframKernel -script {0}
+        shell: wolframscript -file {0}
   
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
