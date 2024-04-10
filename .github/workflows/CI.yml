@@ -54,7 +54,9 @@ jobs:
         run: |
           Print["Version: ", $Version]
           Print["License expiration: ", $LicenseExpirationDate]
-        shell: ${{ env.WOLFRAMENGINE_EXECUTABLE_DIRECTORY }}/WolframKernel -noicon -script {0}
+        shell: WolframKernel -noicon -script {0}
+        env:
+          PATH: "${{env.PATH }}:${{ env.WOLFRAMENGINE_EXECUTABLE_DIRECTORY }}"
 
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
@@ -119,7 +121,9 @@ jobs:
         run: |
           Print["Version: ", $Version]
           Print["License expiration: ", $LicenseExpirationDate]
-        shell: ${{ runner.temp }}/${{ env.WOLFRAMENGINE_INSTALLATION_SUBDIRECTORY }}/WolframKernel -noicon -script {0}
+        shell: WolframKernel -noicon -script {0}
+        env:
+          PATH: "${{env.PATH }};${{ env.WOLFRAMENGINE_EXECUTABLE_DIRECTORY }}"
   
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
