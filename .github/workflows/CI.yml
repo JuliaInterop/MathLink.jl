@@ -22,7 +22,7 @@ jobs:
         run: |
           Print["Version: ", $Version]
           Print["License expiration: ", $LicenseExpirationDate]
-        shell: WolframKernel -script {0}
+        shell: wolframscript -file {0}
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
@@ -50,11 +50,14 @@ jobs:
           brew install --cask wolfram-engine
           echo 'Installed Wolfram Engine.'
 
+      - name: "Set PATH"
+        run: echo "${{ env.WOLFRAMENGINE_EXECUTABLE_DIRECTORY }}" >> $GITHUB_PATH
+
       - name: "Test shell"
         run: |
           Print["Version: ", $Version]
           Print["License expiration: ", $LicenseExpirationDate]
-        shell: ${{ env.WOLFRAMSCRIPT_EXECUTABLE }} -file {0}
+        shell: wolframscript -file {0}
 
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
@@ -69,7 +72,7 @@ jobs:
     runs-on: windows-latest
     env:
       WOLFRAM_SYSTEM_ID: Windows-x86-64
-      WOLFRAMENGINE_INSTALL_MSI_DOWNLOAD_URL: https://files.wolframcdn.com/packages/winget/13.0.0.0/WolframEngine_13.0.0_WIN.msi
+      WOLFRAMENGINE_INSTALL_MSI_DOWNLOAD_URL: https://files.wolframcdn.com/packages/winget/14.0.0.0/WolframEngine_14.0.0_WIN.msi
       WOLFRAMENGINE_CACHE_KEY: WolframEngine-A
       WOLFRAMENGINE_INSTALLATION_SUBDIRECTORY: WolframEngine
       WOLFRAMINIT:  -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile !cloudlm.wolfram.com
@@ -112,7 +115,10 @@ jobs:
               $logFile
           )
           echo 'Installing Wolfram Engine...'
-          Start-Process "msiexec.exe" -ArgumentList $MSIArguments -Wait -NoNewWindow
+          $procMain = Start-Process "msiexec.exe" -ArgumentList $MSIArguments -NoNewWindow -PassThru
+          $procLog = Start-Process "powershell" "Get-Content -Path `"$logFile`" -Wait" -NoNewWindow -PassThru 
+          $procMain.WaitForExit() 
+          $procLog.Kill()
           echo 'Installed Wolfram Engine.'
 
       - name: Set PATH
