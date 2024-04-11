@@ -94,24 +94,22 @@ jobs:
         env:
           WOLFRAMENGINE_INSTALLATION_DIRECTORY: '${{ runner.temp }}\${{ env.WOLFRAMENGINE_INSTALLATION_SUBDIRECTORY }}'
           WOLFRAMENGINE_INSTALL_MSI_PATH: '${{ runner.temp }}\WolframEngine-Install.msi'
-          WOLFRAMENGINE_INSTALL_LOG_PATH: '${{ runner.temp }}\WolframEngine-Install.log'
         run: |
           echo 'Downloading Wolfram Engine installer...'
           $msiFile = '${{ env.WOLFRAMENGINE_INSTALL_MSI_PATH }}'
-          $logFile = '${{ env.WOLFRAMENGINE_INSTALL_LOG_PATH }}'
+          $logFile = 'WolframEngine-Install.log'
 
           Import-Module BitsTransfer
           Start-BitsTransfer '${{ env.WOLFRAMENGINE_INSTALL_MSI_DOWNLOAD_URL }}' $msiFile
           echo 'Downloaded Wolfram Engine installer.'
 
-          $DataStamp = get-date -Format yyyyMMddTHHmmss
           $MSIArguments = @(
               "/i"
               ('"{0}"' -f $msiFile)
               'INSTALLLOCATION="${{ env.WOLFRAMENGINE_INSTALLATION_DIRECTORY }}"'
               "/qn"
               "/norestart"
-              "/L*v"
+              "/l*"
               $logFile
           )
           echo 'Installing Wolfram Engine...'
