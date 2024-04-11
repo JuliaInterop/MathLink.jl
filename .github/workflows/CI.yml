@@ -37,6 +37,7 @@ jobs:
     env:
       WOLFRAMINIT:  -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile !cloudlm.wolfram.com
       WOLFRAMENGINE_EXECUTABLE_DIRECTORY: /Applications/Wolfram Engine.app/Contents/Resources/Wolfram Player.app/Contents/MacOS
+      WOLFRAMSCRIPT_EXECUTABLE: /Applications/Wolfram Engine.app/Contents/Resources/Wolfram Player.app/Contents/MacOS/wolframscript
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
@@ -49,14 +50,11 @@ jobs:
           brew install --cask wolfram-engine
           echo 'Installed Wolfram Engine.'
 
-      - name: "Set PATH"
-        run: echo "${{ env.WOLFRAMENGINE_EXECUTABLE_DIRECTORY }}" >> $GITHUB_PATH
-
       - name: "Test shell"
         run: |
           Print["Version: ", $Version]
           Print["License expiration: ", $LicenseExpirationDate]
-        shell: WolframKernel -script {0}
+        shell: ${{ env.WOLFRAMSCRIPT_EXECUTABLE }} -file {0}
 
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
