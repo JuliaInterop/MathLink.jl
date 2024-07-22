@@ -73,10 +73,10 @@ function find_lib_ker()
             wpaths = [ENV["JULIA_WOLFRAM_DIR"]]
         else
             wpaths = String[]
-            for dir in ["C:\\Program Files\\Wolfram Research\\Mathematica", "C:\\Program Files\\Wolfram Research\\Wolfram Engine"]
+            for mpath in ["C:\\Program Files\\Wolfram Research\\Mathematica", "C:\\Program Files\\Wolfram Research\\Wolfram Engine"]
                 if isdir(mpath)
                     for ver in readdir(mpath)
-                        push!(wpaths, joinpath(dir, ver))
+                        push!(wpaths, joinpath(mpath, ver))
                     end
                 end
             end
