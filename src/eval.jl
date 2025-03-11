@@ -65,7 +65,8 @@ wevalstr(expr) = wevalstr(Any, expr)
 Parse a string `str` as a Wolfram Language expression.
 """
 function parseexpr(str::AbstractString)
-    r = weval(W"ToExpression"(str, W"StandardForm", W"Hold"))
+    UnescapedDollar=unescape_dollar(str)
+    r = weval(W"ToExpression"(UnescapedDollar, W"StandardForm", W"Hold"))
     r.args[1]
 end
 
@@ -75,8 +76,16 @@ end
 Parse a string `expr` as a Wolfram Language expression. 
 """
 macro W_cmd(str)
+    #This macro takes the expresion within ` ` and feeds it to we wolfram engine using
+    # the function parseexpr(string). The result is then back-converted to a julia MathLink expression.
     #quote parseexpr($(esc(Meta.parse("\"$(escape_string(str))\"")))) end
-    string_expr = Meta.parse("\"$(escape_string(str))\"")
+
+    ###Adding a set of string escapes for correct parsing
+    EscapedString=escape_string(str)
+    DollarString=escape_dollar(EscapedString)
+    FullString="\"$(DollarString)\""
+    ##Doing the parsing!
+    string_expr = Meta.parse(FullString)
     subst_dict = Dict{WSymbol,Any}()
     if string_expr isa String
         string = string_expr
@@ -96,6 +105,28 @@ macro W_cmd(str)
     wexpr = parseexpr(string)
     to_julia_expr(wexpr, subst_dict)
 end
+
+"""
+    escape_dollar(str::AbstractString)
+
+Escapes the '\$' character to create a correct string interpretation when these are present.
+"""
+function escape_dollar(str::AbstractString)
+    ####This function explicitly escapes the $ character to create a correct string interpretation when dollars are present.
+    return replace(str,'\$'=>"\\\$")
+end
+"""
+    unescape_dollar(str::AbstractString)
+
+Un-escapes the '\$' character to create a correct string command to send to weval.
+"""
+function unescape_dollar(str::AbstractString)
+    ####This function explicitly escapes the $ character to create a correct string interpretation when dollars are present.
+    return replace(str,"\\\$"=>'\$')
+end
+
+
+
 
 function to_julia_expr(wexpr::WExpr, subst_dict)
     head = to_julia_expr(wexpr.head, subst_dict)

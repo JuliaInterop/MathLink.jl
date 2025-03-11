@@ -4,6 +4,112 @@ using Test
 import MathLink: WExpr, WSymbol
 
 
+
+@testset "interpolation" begin
+    set_GreedyEval(false)
+    x = exp(1)
+    @test W`Sin[$x]` == W"Sin"(x)    
+    @test W`Cos[$(log(2))]` == W"Cos"(log(2))
+
+    @test W`Sin[$(1.2e19)]` == W`Sin[1.2*^19]`
+    @test string(W`Sin[$(1.2e19)]`) == "W`Sin[1.2*^19]`"
+end
+
+
+function TestMeta(x)
+    #println("M '",x,"'")
+    return Meta.parse(x)
+end
+
+function TestEscape(x)
+    #println("E '",x,"'")
+    return escape_string(x)
+end
+
+function EscapeDollar(str::AbstractString)
+    #println("R '",str,"'")
+    return replace(str,'\$'=>"\\\$")
+end
+
+@testset "Conversion of strange characters" begin
+    a="!"
+    println("Test with variable after")
+    ###Test with variable after
+    @test TestMeta("\"$a\"") == "!"
+    @test TestMeta("\"\$a\"") == :("$(a)")
+    ###Invalid escape sequence
+    @test_throws Base.Meta.ParseError("invalid escape sequence") TestMeta("\"\\$a\"")
+    @test TestMeta("\"\\\$a\"") == "\$a"
+    @test TestMeta("\"\\\\$a\"") == "\\!"
+    @test TestMeta("\"\\\\\$a\"") == :("\\$(a)")
+    @test_throws Base.Meta.ParseError("invalid escape sequence") TestMeta("\"\\\\\\$a\"")
+    
+    println("Test with no variable after")
+    ###Test with no variable after
+###   TestMeta("\"$\"") ###Invalid syntax
+    @test_throws Base.Meta.ParseError TestMeta("\"\$\"")
+    ###   TestMeta("\"\\$\"") ###Invalid syntax
+    @test TestMeta("\"\\\$\"") == "\$"
+    ###   TestMeta("\"\\\\$\"") ###Invalid syntax
+    @test_throws Base.Meta.ParseError TestMeta("\"\\\\\$\"")
+    ### TestMeta("\"\\\\\\$\"") ###Invalid syntax
+    @test TestMeta("\"\\\\\\\$\"") == "\\\$"
+    
+    println("Test escaped strings")
+    ### Test escaped strings
+    @test TestEscape("\$") == "\$"
+    @test TestEscape("\\\$") == "\\\\\$"
+    @test TestEscape("\\\\\$") == "\\\\\\\\\$"
+    @test TestEscape("\$\$") == "\$\$"
+    @test TestEscape("\\\$\$") == "\\\\\$\$"
+    @test TestEscape("\\\\\$\$") == "\\\\\\\\\$\$"
+    
+    println("Test escaped strings")
+    @test EscapeDollar("\$") == "\\\$"
+    @test EscapeDollar("\\\$") == "\\\\\$"
+    @test EscapeDollar("\\\\\$") == "\\\\\\\$"
+    @test EscapeDollar("\$\$") == "\\\$\\\$"
+    @test EscapeDollar("\\\$\$") == "\\\\\$\\\$"
+    @test EscapeDollar("\\\\\$\$") == "\\\\\\\$\\\$"
+    
+    set_GreedyEval(false)
+    println("Test math on the symbols")
+    @test weval(WSymbol("a")+WSymbol("a")) == weval(2*WSymbol("a"))
+    @test weval(WSymbol("\$")+WSymbol("\$")) == weval(2*WSymbol("\$"))
+    println("Test creating the symbol")
+    ###Test creating the symbol
+    @test W`a` == WSymbol("a")
+    @test W`a` == W"a"
+    @test W`\$` == WSymbol("\$")
+    
+    
+    println("Test creating the symbol string")
+    ###Test creating the symbol string
+    @test W`"a"` == "a"
+    @test W`"\$"` == "\$"
+    
+    
+    println("Other tests")
+    @test W`"\$"` == "\$"
+    @test W`"a"` == "a"
+    @test W`{a -> b}` == W"List"(W"Rule"(W"a",W"b"))
+    @test W`{"a" -> "b"}` == W"List"(W"Rule"("a","b"))
+    @test W`"a" -> "b"` == W"Rule"("a","b")
+    @test W`a -> b` == W"Rule"(W"a",W"b")
+    @test W`"b(\$)a"` == "b(\$)a"
+    @test W`"b\\\$"` == "b\\\$"
+    @test W`"b\$"` == "b\$"
+    @test W`"$a"` == "\$a"
+    @test W`"$"` == "\$"
+    @test W`"$"` == "\$"
+    @test W`"$" -> "b"` == W"Rule"("\$","b")
+    @test W`{"$" -> "b"}` == W"List"(W"Rule"("\$","b"))
+    @test W`{"a" -> "$"}` == W"List"(W"Rule"("a","\$"))
+    @test W`{a -> "$"}` == W"List"(W"Rule"(W"a","\$"))
+
+end
+
+
 @testset "W2JuliaExpr" begin
     ###Test of a simple MathLink to Julia converter. It converts MathLink expressions to the correcsponding Julia constructions
     @testset "Variables" begin
@@ -196,15 +302,6 @@ end
     @test weval(W"Dot"(A,x)) == WExpr(W"List",A*x)
 end
 
-@testset "interpolation" begin
-    x = exp(1)
-    @test W`Sin[$x]` == W"Sin"(x)    
-    @test W`Cos[$(log(2))]` == W"Cos"(log(2))
-
-    @test W`Sin[$(1.2e19)]` == W`Sin[1.2*^19]`
-    @test string(W`Sin[$(1.2e19)]`) == "W`Sin[1.2*^19]`"
-end
-
 
 
 @testset "README" begin
@@ -356,5 +453,36 @@ end
     @test showable("text/latex",W"a"+W"b")
     set_texOutput(false)
     @test !showable("text/latex",W"a"+W"b")
+end
+
+
+
+
+@testset "String conversions floats" begin
+    ###A few special tests to solve issue 94
+    ###https://github.com/JuliaInterop/MathLink.jl/issues/94
+
+
+    ####
+    ### weval(W"ToExpression"("17.0000000000000000000000000", W"StandardForm", W"Hold"))
+    
+    s="17.000000000"
+    @test MathLink.parseexpr(s) == s
+    s="17.0000000000"
+    @test MathLink.parseexpr(s) == s
+    s="17.00000000000"
+    @test MathLink.parseexpr(s) == s
+    s="17.000000000000"
+    @test MathLink.parseexpr(s) == s
+    s="17.0000000000000"
+    @test MathLink.parseexpr(s) == s
+    s="17.00000000000000"
+    @test MathLink.parseexpr(s) == s
+    
+    @test W`17.000000000` == 17.0
+    @test W`17.000000000000` == 17.0
+    @test W`17.00000000000000000` == 17.0
+    @test W`17.000000000000000000000` == 17.0
+    
 end
 
