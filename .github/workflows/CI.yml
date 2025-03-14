@@ -16,6 +16,13 @@ jobs:
       WOLFRAMINIT:  -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile !cloudlm.wolfram.com
     steps:
       - uses: actions/checkout@v2
+      - name: "Check Wolfram Engine installation"
+        run: WolframKernel -version
+      - name: "Test shell"
+        run: |
+          Print["Version: ", $Version]
+          Print["License expiration: ", $LicenseExpirationDate]
+        shell: wolframscript -file {0}
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
@@ -29,6 +36,8 @@ jobs:
     runs-on: macos-latest
     env:
       WOLFRAMINIT:  -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile !cloudlm.wolfram.com
+      WOLFRAMENGINE_EXECUTABLE_DIRECTORY: /Applications/Wolfram Engine.app/Contents/Resources/Wolfram Player.app/Contents/MacOS
+      WOLFRAMSCRIPT_EXECUTABLE: /Applications/Wolfram Engine.app/Contents/Resources/Wolfram Player.app/Contents/MacOS/wolframscript
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
@@ -40,6 +49,15 @@ jobs:
           echo 'Installing Wolfram Engine...'
           brew install --cask wolfram-engine
           echo 'Installed Wolfram Engine.'
+
+      - name: "Set PATH"
+        run: echo "${{ env.WOLFRAMENGINE_EXECUTABLE_DIRECTORY }}" >> $GITHUB_PATH
+
+      - name: "Test shell"
+        run: |
+          Print["Version: ", $Version]
+          Print["License expiration: ", $LicenseExpirationDate]
+        shell: wolframscript -file {0}
 
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
@@ -54,7 +72,7 @@ jobs:
     runs-on: windows-latest
     env:
       WOLFRAM_SYSTEM_ID: Windows-x86-64
-      WOLFRAMENGINE_INSTALL_MSI_DOWNLOAD_URL: https://files.wolframcdn.com/packages/winget/13.0.0.0/WolframEngine_13.0.0_WIN.msi
+      WOLFRAMENGINE_INSTALL_MSI_DOWNLOAD_URL: https://files.wolframcdn.com/packages/winget/14.0.0.0/WolframEngine_14.0.0_WIN.msi
       WOLFRAMENGINE_CACHE_KEY: WolframEngine-A
       WOLFRAMENGINE_INSTALLATION_SUBDIRECTORY: WolframEngine
       WOLFRAMINIT:  -entitlement ${{ secrets.WOLFRAM_LICENSE_ENTITLEMENT_ID }} -pwfile !cloudlm.wolfram.com
@@ -76,29 +94,42 @@ jobs:
         env:
           WOLFRAMENGINE_INSTALLATION_DIRECTORY: '${{ runner.temp }}\${{ env.WOLFRAMENGINE_INSTALLATION_SUBDIRECTORY }}'
           WOLFRAMENGINE_INSTALL_MSI_PATH: '${{ runner.temp }}\WolframEngine-Install.msi'
-          WOLFRAMENGINE_INSTALL_LOG_PATH: '${{ runner.temp }}\WolframEngine-Install.log'
         run: |
           echo 'Downloading Wolfram Engine installer...'
           $msiFile = '${{ env.WOLFRAMENGINE_INSTALL_MSI_PATH }}'
-          $logFile = '${{ env.WOLFRAMENGINE_INSTALL_LOG_PATH }}'
+          $logFile = 'WolframEngine-Install.log'
 
           Import-Module BitsTransfer
           Start-BitsTransfer '${{ env.WOLFRAMENGINE_INSTALL_MSI_DOWNLOAD_URL }}' $msiFile
           echo 'Downloaded Wolfram Engine installer.'
 
-          $DataStamp = get-date -Format yyyyMMddTHHmmss
           $MSIArguments = @(
               "/i"
               ('"{0}"' -f $msiFile)
               'INSTALLLOCATION="${{ env.WOLFRAMENGINE_INSTALLATION_DIRECTORY }}"'
               "/qn"
               "/norestart"
-              "/L*v"
+              "/l*"
               $logFile
           )
           echo 'Installing Wolfram Engine...'
-          Start-Process "msiexec.exe" -ArgumentList $MSIArguments -Wait -NoNewWindow
+          $procMain = Start-Process "msiexec.exe" -ArgumentList $MSIArguments -NoNewWindow -PassThru
+          $procLog = Start-Process "powershell" "Get-Content -Path `"$logFile`" -Wait" -NoNewWindow -PassThru 
+          $procMain.WaitForExit() 
+          $procLog.Kill()
           echo 'Installed Wolfram Engine.'
+
+      - name: Set PATH
+        env:
+          WOLFRAMENGINE_INSTALLATION_DIRECTORY: '${{ runner.temp }}\${{ env.WOLFRAMENGINE_INSTALLATION_SUBDIRECTORY }}'
+        run: echo "${{ env.WOLFRAMENGINE_INSTALLATION_DIRECTORY }}" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: "Test shell"
+        run: |
+          Print["Version: ", $Version]
+          Print["License expiration: ", $LicenseExpirationDate]
+        shell: wolframscript -file {0}
+  
       - uses: julia-actions/setup-julia@v1
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
