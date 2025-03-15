@@ -191,6 +191,32 @@ using Test
 Printing in Jupyter notebooks is, by default, done in latex.
 This can be turned off with the command `MathLink.set_texOutput(false)`
 
+## Escaping dollars for Mathematica
+The `$` sign has a special meaning in Julia, but it does not in Mathematica. We can send dollar signs to Mathematica that same way we add them to normal strings. Below are a few exampoles of how it works: 
+
+    using Test
+    x = exp(1)
+    @test W`$x` == x
+    @test W`\$` == W"$"
+    @test W`\$x` == W"$x"
+    @test W`$x +\$` == x+W"$"
+    @test W`"\$"` == "\$"
+    @test W`"a"` == "a"
+    @test W`{a -> b}` == W"List"(W"Rule"(W"a",W"b"))
+    @test W`{"a" -> "b"}` == W"List"(W"Rule"("a","b"))
+    @test W`"a" -> "b"` == W"Rule"("a","b")
+    @test W`a -> b` == W"Rule"(W"a",W"b")
+    @test W`"b(\$)a"` == "b(\$)a"
+    @test W`"b\\\$"` == "b\\\$"
+    @test W`"b\$"` == "b\$"
+    @test W`"\$a"` == "\$a"
+    @test W`"\$" -> "b"` == W"Rule"("\$","b")
+    @test W`{"\$" -> "b"}` == W"List"(W"Rule"("\$","b"))
+    @test W`{"a" -> "\$"}` == W"List"(W"Rule"("a","\$"))
+    @test W`{a -> "\$"}` == W"List"(W"Rule"(W"a","\$"))
+
+
+
 ## Installation Troubleshoot
 The package requires an installation of either [Mathematica](http://www.wolfram.com/mathematica/) or the free [Wolfram Engine](https://www.wolfram.com/engine/). It will attempt to find the installation at build time; if this fails, you will need to set the following [environment variables](https://docs.julialang.org/en/v1/manual/environment-variables/):
 - `JULIA_MATHKERNEL`: the path of the MathKernel executable

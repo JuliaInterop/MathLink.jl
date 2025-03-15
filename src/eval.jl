@@ -65,8 +65,16 @@ wevalstr(expr) = wevalstr(Any, expr)
 Parse a string `str` as a Wolfram Language expression.
 """
 function parseexpr(str::AbstractString)
+    #####The escaping of dollars was a bit messy. I'm letting these comment stay here for a while untill a better documentation is in place.
+
+
+    #println("parseexpr: '",str,"'")
+    #dump(str)
     UnescapedDollar=unescape_dollar(str)
+    #println("UnescapedDollar: '",UnescapedDollar,"'")
+    #dump(UnescapedDollar)
     r = weval(W"ToExpression"(UnescapedDollar, W"StandardForm", W"Hold"))
+    #println("r: '",r,"'")
     r.args[1]
 end
 
@@ -80,12 +88,29 @@ macro W_cmd(str)
     # the function parseexpr(string). The result is then back-converted to a julia MathLink expression.
     #quote parseexpr($(esc(Meta.parse("\"$(escape_string(str))\"")))) end
 
+
+    #####The escaping of dollars was a bit messy. I'm letting these comment stay here for a while untill a better documentation is in place.
+    
     ###Adding a set of string escapes for correct parsing
+    #println("------")
+    #println("str: '",str,"'")
     EscapedString=escape_string(str)
+    #println("EscapedString: '",EscapedString,"'")
     DollarString=escape_dollar(EscapedString)
+    #println("DollarString: '",DollarString,"'")
     FullString="\"$(DollarString)\""
+    #FullStringII="\"$(EscapedString)\""
+
+    #println("FullString: '",FullString,"'")
+    #println("FullStringII: '",FullStringII,"'")
+
     ##Doing the parsing!
     string_expr = Meta.parse(FullString)
+#    string_exprII = Meta.parse(FullStringII)
+    #println("string_expr: '",string_expr,"'")
+#    println("string_exprII: '",string_exprII,"'")
+
+    
     subst_dict = Dict{WSymbol,Any}()
     if string_expr isa String
         string = string_expr
@@ -102,7 +127,11 @@ macro W_cmd(str)
     else
         error("Invalid string expression: $string_expr")
     end
+    #println("subst_dict:",subst_dict)
+    #println("string:",string)
+    
     wexpr = parseexpr(string)
+    #println("wexpr: '",wexpr,"'")
     to_julia_expr(wexpr, subst_dict)
 end
 
@@ -113,7 +142,7 @@ Escapes the '\$' character to create a correct string interpretation when these 
 """
 function escape_dollar(str::AbstractString)
     ####This function explicitly escapes the $ character to create a correct string interpretation when dollars are present.
-    return replace(str,'\$'=>"\\\$")
+    return replace(str,"\\\$"=>"\\\\\$")
 end
 """
     unescape_dollar(str::AbstractString)
@@ -124,7 +153,6 @@ function unescape_dollar(str::AbstractString)
     ####This function explicitly escapes the $ character to create a correct string interpretation when dollars are present.
     return replace(str,"\\\$"=>'\$')
 end
-
 
 
 
