@@ -27,6 +27,15 @@ function find_lib_ker()
             end
         end
 
+        # Wolfram Mathematica
+        for path in readlines(`mdfind "kMDItemCFBundleIdentifier == 'com.wolfram.*'"`)
+            lib = joinpath(path,"Contents/Frameworks/mathlink.framework/mathlink")
+            ker = joinpath(path,"Contents/MacOS/MathKernel")
+            if isfile(lib) && isfile(ker)
+                return lib, ker
+            end
+        end
+
     elseif Sys.isunix()
         archdir = Sys.ARCH == :arm ?    "Linux-ARM" :
                   Sys.ARCH == :x86_64 ? "Linux-x86-64" :
