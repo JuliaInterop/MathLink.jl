@@ -192,7 +192,7 @@ Printing in Jupyter notebooks is, by default, done in latex.
 This can be turned off with the command `MathLink.set_texOutput(false)`
 
 ## Escaping dollars for Mathematica
-The `$` sign has a special meaning in Julia, but it does not in Mathematica. We can send dollar signs to Mathematica that same way we add them to normal strings. Below are a few exampoles of how it works: 
+The `$` sign has a special meaning in Julia, but it does not in Mathematica. We can send dollar signs to Mathematica that same way we add them to normal strings. Below are a few examples of how it works: 
 
     using Test
     x = exp(1)
@@ -251,6 +251,11 @@ julia> using MathLink
 [ Info: Precompiling MathLink [18c93696-a329-5786-9845-8443133fa0b4]
 [ Info: Pretending fake installation works
 ```
+
+## Relation to other packages
+The MathLink package is a free standing package with verry few dependencies. However, it can be made to work with e.g. the [Symbolics](https://github.com/JuliaSymbolics/Symbolics.jl) package with the help of the package [SymbolicsMathLink](https://github.com/eswagel/SymbolicsMathLink.jl).
+
+For documenation of these for packages, see their respective project pages.
 
 
 ## Notes
