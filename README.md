@@ -187,12 +187,12 @@ using Test
 `W2JuliaStruct` does not convert expressions to Julia functions, as not all functions will be able to evaluate when WSymbols are present.
 
 
-## LateX printing in JuPyter Notebooks
+## LaTeX printing in Jupyter Notebooks
 Printing in Jupyter notebooks is, by default, done in latex.
 This can be turned off with the command `MathLink.set_texOutput(false)`
 
 ## Escaping dollars for Mathematica
-The `$` sign has a special meaning in Julia, but it does not in Mathematica. We can send dollar signs to Mathematica that same way we add them to normal strings. Below are a few examples of how it works: 
+The `$` sign has a special meaning in Julia, but it does not in Mathematica. We can send dollar signs to Mathematica the same way we add them to normal strings. Below are a few examples of how it works: 
 
     using Test
     x = exp(1)
@@ -253,9 +253,9 @@ julia> using MathLink
 ```
 
 ## Relation to other packages
-The MathLink package is a free standing package with verry few dependencies. However, it can be made to work with e.g. the [Symbolics](https://github.com/JuliaSymbolics/Symbolics.jl) package with the help of the package [SymbolicsMathLink](https://github.com/eswagel/SymbolicsMathLink.jl).
+The MathLink package is a free standing package with very few dependencies. However, it can be made to work with e.g. the [Symbolics](https://github.com/JuliaSymbolics/Symbolics.jl) package with the help of the package [SymbolicsMathLink](https://github.com/eswagel/SymbolicsMathLink.jl).
 
-For documenation of these for packages, see their respective project pages.
+For documentation of these packages, see their respective project pages.
 
 
 ## Notes
