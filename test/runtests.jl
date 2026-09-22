@@ -129,6 +129,14 @@ end
         @test W2JuliaExpr(W`a/b`) == :(a*(b^-1))
         @test W2JuliaExpr(W`a^b`) == :(a^b)
         @test W2JuliaExpr(W`Exp[a]`) == :(exp(a))
+        @test W2JuliaExpr(W`E^(I Pi)`) == :(ℯ^(im * π))
+        @test begin
+            MathLink.symbolDict["EulerGamma"] = :(MathConstants.γ)
+            converted = W2JuliaExpr(W"EulerGamma")
+            delete!(MathLink.symbolDict, "EulerGamma")
+            converted == :(MathConstants.γ)
+        end
+        @test W2JuliaExpr(W`"abc"`) == "abc"
     end
 
     @testset "To function" begin

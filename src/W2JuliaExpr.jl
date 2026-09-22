@@ -16,13 +16,21 @@ function W2JuliaExpr(wexpr::WExpr)
     end
     return Expr(:call,Operator,[W2JuliaExpr(arg) for arg in wexpr.args]...)
 end
-W2JuliaExpr(wexpr::WSymbol) = Symbol(wexpr.name)
+W2JuliaExpr(wexpr::WSymbol) = Base.get(symbolDict, wexpr.name, Symbol(wexpr.name))
 W2JuliaExpr(wexpr::Number) = wexpr
+W2JuliaExpr(wexpr::AbstractString) = wexpr
 
 
-###Dictionary with known funcitons and their translations
-funcDict=Dict("Plus"=>:+,
-              "Minus"=>:-,
-              "Power"=>:^,
-              "Times"=>:*,
-              )
+# Julia names for Wolfram expression heads.
+funcDict = Dict("Plus" => :+,
+                "Minus" => :-,
+                "Power" => :^,
+                "Times" => :*,
+                "Rational" => ://,
+                )
+
+# Julia names for Wolfram symbols used as values or arguments.
+symbolDict = Dict{String,Union{Symbol,Expr}}("Pi" => :π,
+                                             "E" => :ℯ,
+                                             "I" => :im,
+                                             )
