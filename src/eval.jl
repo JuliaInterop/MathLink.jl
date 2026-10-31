@@ -54,7 +54,7 @@ weval(expr; vars...) = weval(Any, expr; vars...)
 
 
 function wevalstr(link, T, str::AbstractString)
-    weval(link, W"ToExpression"(str), T)
+    weval(link, T, W"ToExpression"(str))
 end
 wevalstr(T, expr) = wevalstr(_defaultlink(), T, expr)
 wevalstr(expr) = wevalstr(Any, expr)

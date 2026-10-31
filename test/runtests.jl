@@ -241,6 +241,10 @@ end
 
 
 
+@testset "wevalstr" begin
+    @test MathLink.wevalstr(Int, "2 + 3") == 5
+end
+
 @testset "integers" begin
     w = W"Factorial"(30)
     @test_throws MathLink.MathLinkError weval(Int, w)
