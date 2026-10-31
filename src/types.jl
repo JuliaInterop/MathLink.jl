@@ -54,6 +54,43 @@ end
 Base.show(io::IO, x::WReal) = print(io, x.value)
 Base.:(==)(a::WReal, b::WReal) = a.value == b.value
 
+# Wolfram number syntax: mantissa, optional `prec or ``acc mark, optional *^exp,
+# e.g. "17.`18.230448921378276", "2.5``10", "1.25`20*^-5".
+const WREAL_REGEX = r"^([+-]?(?:\d+\.?\d*|\.\d+))(?:(``?)([+-]?(?:\d+\.?\d*|\.\d+)?))?(?:\*\^([+-]?\d+))?$"
+
+"""
+    BigFloat(x::WReal)
+
+Convert a Wolfram arbitrary-precision real to a `BigFloat` without contacting the
+kernel. The binary precision is chosen to cover the decimal precision recorded in
+the number (at least 53 bits).
+"""
+function Base.BigFloat(x::WReal)
+    m = match(WREAL_REGEX, x.value)
+    m === nothing && throw(ArgumentError("cannot parse WReal \"$(x.value)\" as a number"))
+    mantissa, mark, p, ex = m.captures
+    numstr = ex === nothing ? mantissa : "$(mantissa)e$(ex)"
+    digits = 0.0
+    if mark !== nothing && p !== nothing && !isempty(p)
+        digits = parse(Float64, p)
+        if mark == "``"
+            # Accuracy -> Precision: precision = accuracy + log10(|x|)
+            v = abs(parse(Float64, numstr))
+            digits = iszero(v) ? 0.0 : digits + log10(v)
+        end
+    end
+    bits = max(53, ceil(Int, digits / log10(2)))
+    setprecision(BigFloat, bits) do
+        parse(BigFloat, numstr)
+    end
+end
+Base.convert(::Type{BigFloat}, x::WReal) = BigFloat(x)
+
+# Exact comparison against Julia reals, by numeric value (cf. Equal[] in Wolfram,
+# which is tolerance based; this follows Julia's exact == semantics).
+Base.:(==)(a::WReal, b::Real) = BigFloat(a) == b
+Base.:(==)(a::Real, b::WReal) = b == a
+
 """
     WInteger(str::String)
 

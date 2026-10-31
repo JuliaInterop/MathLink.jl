@@ -274,6 +274,7 @@ end
     @test abs(weval(Float64, W"Sin"(big(pi)))) < sin(big(pi))
 end
 
+
 @testset "Irrationals" begin
     @test weval(W"Sin"(pi)) == 0
 end
@@ -466,7 +467,6 @@ end
     ###A few special tests to solve issue 94
     ###https://github.com/JuliaInterop/MathLink.jl/issues/94
 
-
     ####
     ### weval(W"ToExpression"("17.0000000000000000000000000", W"StandardForm", W"Hold"))
     
@@ -482,11 +482,42 @@ end
     @test_broken MathLink.parseexpr(s) == s
     s="17.00000000000000"
     @test_broken MathLink.parseexpr(s) == s
-    
+
+    ###Since these are all just 17.0 the length is not relevant
     @test W`17.000000000` == 17.0
     @test W`17.000000000000` == 17.0
-    @test_broken W`17.00000000000000000` == 17.0
-    @test_broken W`17.000000000000000000000` == 17.0
-    
-end
+    @test W`17.00000000000000000` == 17.0
+    @test W`17.000000000000000000000` == 17.0
 
+    ###Here there is a higher precision and so the smallest bits also needs to be represented
+    @test W`17.00000000001`  == 17.00000000001
+    @test W`17.000000000001` == 17.000000000001
+    @test W`17.00000000001`  != 17.0
+    
+    ##Here the values are to long to represent as normal floats, and gets the extra mathematica long precition attitions 
+    @test W`25.0300050030004001`==MathLink.WReal("25.0300050030004001`17.398460936415066")
+    @test W`17.00000000000000000000000001` == MathLink.WReal("17.00000000000000000000000001`27.230448921378276")
+    @test W`17.0000000000000000000000000001` == MathLink.WReal("17.0000000000000000000000000001`29.230448921378276")
+    
+    
+   end
+
+
+@testset "Arbitrary precision reals (issue #94)" begin
+    ###Some more tests with arbirary precition reals
+    
+    set_GreedyEval(false)
+    ###Sending a WReal must not modify it
+    a = W`17.00000000000000000000000000000`
+    s = a.value
+    weval(W"Sin"(W"Sqrt"(a)))
+    @test a.value == s
+    @test string(W"Sin"(W"Sqrt"(a))) == "W`Sin[Sqrt[$s]]`"
+    ###Precision must survive the trip to the kernel
+    @test weval(W"Precision"(MathLink.WReal("2.5`20"))) == 20
+    @test weval(W"Precision"(MathLink.WReal("-3.0`5"))) == 5
+    @test weval(W"Precision"(MathLink.WReal("123456789.123456789`25"))) == 25
+    @test weval(W"Accuracy"(MathLink.WReal("2.5``10"))) ≈ 10
+    @test weval(W"Precision"(MathLink.WReal("1.25`20*^-5"))) == 20
+    @test weval(W"Precision"(big(pi))) ≈ precision(big(pi))*log10(2)
+end
