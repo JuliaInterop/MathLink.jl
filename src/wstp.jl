@@ -94,10 +94,15 @@ end
 
 # WReal/WInteger
 function put(link::Link, w::WReal)
-    # int MLPutRealNumberAsUTF8String(MLLINK l, const unsigned char *s, int n)
-    @wschk ccall((:MLPutRealNumberAsUTF8String, mlib), Cint,
-                 (CLink, Ptr{UInt8}, Cint),
-                 link, w.value, sizeof(w.value))    
+    # Despite the const in its signature, the library rewrites the string in place
+    # (e.g. "2.5`20" -> "2.5\0`2"), so pass a private NUL-terminated copy.
+    # MLPutRealNumberAsUTF8String is avoided: its byte count truncates the rewritten
+    # string and drops precision digits (issue #94).
+    buf = push!(Vector{UInt8}(w.value), 0x00)
+    # int MLPutRealNumberAsString(MLLINK l, const char *s)
+    @wschk ccall((:MLPutRealNumberAsString, mlib), Cint,
+                 (CLink, Ptr{UInt8}),
+                 link, buf)
     nothing
 end
 function get(link::Link, ::Type{W}) where W <: Union{WReal,WInteger}
