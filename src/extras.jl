@@ -102,7 +102,7 @@ end
 
 const log10_2 = log10(2)
 function put(link::Link, x::BigFloat)
-    str = Base.MPFR.string_mpfr(x,"%.Re")
+    str = Base.MPFR.string_mpfr(x,"%Re")
     str = replace(str, "e" => "`$(log10_2*precision(x))*^")
     put(link, WReal(str))
 end
