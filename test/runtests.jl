@@ -43,11 +43,11 @@ end
     @test TestMeta("\"$a\"") == "!"
     @test TestMeta("\"\$a\"") == :("$(a)")
     ###Invalid escape sequence
-    @test_throws Base.Meta.ParseError("invalid escape sequence") TestMeta("\"\\$a\"")
+    @test_throws "invalid escape sequence" TestMeta("\"\\$a\"")
     @test TestMeta("\"\\\$a\"") == "\$a"
     @test TestMeta("\"\\\\$a\"") == "\\!"
     @test TestMeta("\"\\\\\$a\"") == :("\\$(a)")
-    @test_throws Base.Meta.ParseError("invalid escape sequence") TestMeta("\"\\\\\\$a\"")
+    @test_throws "invalid escape sequence" TestMeta("\"\\\\\\$a\"")
     
     #println("Test with no variable after")
     ###Test with no variable after
