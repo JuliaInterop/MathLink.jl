@@ -474,25 +474,21 @@ end
     ####
     ### weval(W"ToExpression"("17.0000000000000000000000000", W"StandardForm", W"Hold"))
     
-    s="17.000000000"
-    @test_broken MathLink.parseexpr(s) == s
-    s="17.0000000000"
-    @test_broken MathLink.parseexpr(s) == s
-    s="17.00000000000"
-    @test_broken MathLink.parseexpr(s) == s
-    s="17.000000000000"
-    @test_broken MathLink.parseexpr(s) == s
-    s="17.0000000000000"
-    @test_broken MathLink.parseexpr(s) == s
-    s="17.00000000000000"
-    @test_broken MathLink.parseexpr(s) == s
-
     ###Since these are all just 17.0 the length is not relevant
     @test W`17.000000000` == 17.0
     @test W`17.000000000000` == 17.0
     @test W`17.00000000000000000` == 17.0
     @test W`17.000000000000000000000` == 17.0
 
+    @test W`4.300000000000001`  == 4.300000000000001
+    @test W`4.3000000000000001` == 4.3000000000000001
+    @test W`4.30000000000000001`== MathLink.WReal("4.30000000000000001`17.63346845557959")
+
+    @test W`4.300000000000001`   != 4.3
+    ###This is a sort of off-by one error where there is a missmatch between how the kernel curls of floats. Getting such a missmatch is almost ineetable.
+    @test_broken W`4.3000000000000001`  != 4.3
+    @test W`4.30000000000000001` != 4.3
+    
     ###Here there is a higher precision and so the smallest bits also needs to be represented
     @test W`17.00000000001`  == 17.00000000001
     @test W`17.000000000001` == 17.000000000001

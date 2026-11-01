@@ -257,6 +257,20 @@ The MathLink package is a free standing package with very few dependencies. Howe
 
 For documentation of these packages, see their respective project pages.
 
+## Known quirk: real numbers with 17 significant digits
+The Wolfram kernel reads any real number written with at most 17 significant digits as a machine real (a `Float64`), and it only switches to arbitrary precision from 18 digits. A literal with 16 or 17 digits that is not exactly representable as a double is therefore silently rounded to the nearest `Float64`:
+```julia
+julia> W`4.300000000000001`        # 16 digits: a distinct Float64
+4.300000000000001
+
+julia> W`4.3000000000000001`       # 17 digits: rounded to the machine real 4.3
+4.3
+
+julia> W`4.30000000000000001`      # 18 digits: arbitrary precision
+4.30000000000000001`17.63346845557959
+```
+Mathematica itself behaves the same way, so MathLink does not change it. Julia's own parser also rounds the literal `4.3000000000000001` to `4.3`. If you need every digit to be kept, give an explicit precision with a precision mark, e.g. ``4.3000000000000001`17``. Because a backtick ends a ``W`…` `` literal, pass the expression as a string through ``weval(MathLink.parseexpr("4.3000000000000001`17"))``, which returns ``4.3000000000000001`17.``.
+
 
 ## Notes
 
