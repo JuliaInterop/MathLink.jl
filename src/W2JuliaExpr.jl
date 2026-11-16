@@ -6,13 +6,17 @@ export W2JuliaExpr
 Converts MathLink `WExpr`essions to Julia `Expr`essions
 """
 function W2JuliaExpr(wexpr::WExpr)
-    ####Check if the operator has an alias
-    if haskey(funcDict, wexpr.head.name)
-        ####Use the alias
-        Operator=funcDict[wexpr.head.name]
+    head = wexpr.head
+    if head isa WSymbol
+        # Use the Julia function alias when available, otherwise lowercase the name.
+        Operator = Base.get(funcDict, head.name, Symbol(lowercase(head.name)))
+    elseif head isa WExpr
+        # Convert the compound head into a nested Julia call.
+        Operator = W2JuliaExpr(head)
     else
-        ####Use the name directly as a symbol (but in lowercase)
-        Operator=Symbol(lowercase(wexpr.head.name))
+        throw(ArgumentError(
+            "W2JuliaExpr expected a symbol or expression as the call head, got $(repr(head))"
+        ))
     end
     return Expr(:call,Operator,[W2JuliaExpr(arg) for arg in wexpr.args]...)
 end

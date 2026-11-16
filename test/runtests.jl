@@ -131,6 +131,11 @@ end
         @test W2JuliaExpr(W`Exp[a]`) == :(exp(a))
     end
 
+    @testset "Call heads" begin
+        @test W2JuliaExpr(MathLink.wevalstr("f[1][2]")) == :(f(1)(2))
+        @test_throws ArgumentError W2JuliaExpr(WExpr(1, (2,)))
+    end
+
     @testset "To function" begin
         ex = W2JuliaExpr(W`a+b`)
         fun = @eval (a,b) -> $ex
@@ -162,6 +167,7 @@ end
         @test W2JuliaStruct(Dict( 1 => "A" , "B" => 2)) ==Dict( 1 => "A" , "B" => 2)
         
         @test W2JuliaStruct(W`Association["A" -> "B", "C" -> "D"]`) == Dict( "A" => "B" , "C" => "D")
+        @test_throws ErrorException("not a rule") W2JuliaStruct(W"Association"(W"x"))
     end
     @testset "Association and List Dict" begin
         @test W2JuliaStruct(W`Association["A" -> {1,2,3}, "B" -> "C"]`) == Dict( "A" => [1,2,3] , "B" => "C")
@@ -195,6 +201,7 @@ end
         
     end    
     @testset "Nested functions" begin
+        @test W2Mstr(W"f"(1)(2)) == "f[1][2]"
         @test W2Mstr(weval(W`a + c*b + v`)) == "(a + (b*c) + v)"
         @test W2Mstr(weval(W`(a + c)*(b + v)`)) == "((a + c)*(b + v))"
         @test W2Mstr(weval(W`a^(b+c)`)) == "(a^(b + c))"
