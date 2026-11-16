@@ -60,6 +60,7 @@ const graphics_heads = (W"Graphics", W"Graphics3D", W"Legended")
 ###Check if an expression has a grapics head
 HasGraphicsHead(w::MathLink.WSymbol) = false
 function HasGraphicsHead(w::MathLink.WExpr)
+    w.head isa WSymbol || return false
     HeadString = w.head.name
     ###Check for graphics related names not based on ending on Plot* or Chart*
     if in(w.head, graphics)
@@ -130,17 +131,17 @@ end
 
 W2Mstr(x::MathLink.WSymbol) = x.name
 function W2Mstr(x::MathLink.WExpr)
-    #println("W2Mstr::",x.head.name)
-    if x.head.name == "Plus"
+    head = x.head
+    if head == W"Plus"
         Str = W2Mstr_PLUS(x.args)
-    elseif x.head.name == "Times"
+    elseif head == W"Times"
         Str = W2Mstr_TIMES(x.args)
-    elseif x.head.name == "Power"
+    elseif head == W"Power"
         Str = W2Mstr_POWER(x.args)
-    elseif x.head.name == "Complex"
+    elseif head == W"Complex"
         Str = W2Mstr_COMPLEX(x.args)
     else
-        Str=x.head.name*"["
+        Str = W2Mstr(head) * "["
         for j in 1:length(x.args)
             if j>1
                 Str*=","

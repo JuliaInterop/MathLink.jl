@@ -60,7 +60,7 @@ function W2JuliaStructAccociation(Asso::MathLink.WExpr)
     end
     D=Dict()
     for Rule in Asso.args
-        if Rule.head != W"Rule"
+        if !(Rule isa WExpr && Rule.head == W"Rule")
             error("not a rule")
         end
         if length(Rule.args) != 2
